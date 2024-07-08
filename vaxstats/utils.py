@@ -97,8 +97,8 @@ def split_df(
     splits = []
     previous_time = earliest_time
     for hour in hours:
-        logger.debug(f"Finding lines before {previous_time}")
         time_window_end = previous_time + timedelta(hours=hour)
+        logger.debug(f"Finding lines between {previous_time} and {time_window_end}")
         df_split = df.filter(
             (pl.col(date_column) >= previous_time)
             & (pl.col(date_column) < time_window_end)
