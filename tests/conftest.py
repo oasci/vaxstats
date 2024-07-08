@@ -20,3 +20,8 @@ def path_example_excel():
 @pytest.fixture
 def path_example_prepped_csv():
     return os.path.join(TEST_DIR, "files/example_prepped.csv")
+
+
+@pytest.fixture
+def path_example_forecast_csv():
+    return os.path.join(TEST_DIR, "files/example_forecast.csv")
