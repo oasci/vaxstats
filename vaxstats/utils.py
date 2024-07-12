@@ -1,7 +1,9 @@
-from typing import Any, Collection
+from typing import Any, Collection, Literal
 
 from datetime import timedelta
 
+import numpy as np
+import numpy.typing as npt
 import polars as pl
 from loguru import logger
 
@@ -110,3 +112,22 @@ def split_df(
     df_remaining = df.filter(pl.col(date_column) >= previous_time)
     splits.append(df_remaining)
     return tuple(splits)
+
+
+def datetime_to_float(
+    df: pl.DataFrame,
+    time_unit: Literal["hours", "days"] = "days",
+    date_column: str = "ds",
+    date_fmt: str = "%Y-%m-%d %H:%M:%S",
+) -> npt.NDArray[np.float64]:
+    dates = df.get_column(date_column)
+    dates = dates.str.to_datetime(date_fmt)
+    earliest_date = dates.min()
+    if time_unit == "hours":
+        time_factor = 1 / 3600  # seconds to hour
+    elif time_unit == "days":
+        time_factor = 1 / 86400  # seconds to day
+    time = np.array(
+        [(date - earliest_date).total_seconds() * time_factor for date in dates]
+    )
+    return time

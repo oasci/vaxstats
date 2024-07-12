@@ -1,5 +1,7 @@
+import numpy as np
+
 from vaxstats.io import load_file
-from vaxstats.utils import split_df
+from vaxstats.utils import datetime_to_float, split_df
 
 
 def test_split(path_example_prepped_csv):
@@ -8,3 +10,12 @@ def test_split(path_example_prepped_csv):
 
     assert df_train.shape == (94, 3)
     assert df_test.shape == (2_627, 3)
+
+
+def test_date_to_hours(path_example_prepped_csv):
+    df = load_file(path_example_prepped_csv, file_type="csv")
+    hours = datetime_to_float(df, time_unit="hours")
+
+    assert np.allclose(hours[0], 0)
+    assert np.allclose(hours[1], 0.25)
+    assert np.allclose(hours[-1], 693.210556)
