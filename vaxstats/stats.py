@@ -1,3 +1,4 @@
+import numpy as np
 import polars as pl
 from loguru import logger
 
@@ -50,3 +51,32 @@ def add_residuals_col(
     return df.with_columns(
         (pl.col(true_column) - pl.col(pred_column)).alias(residual_name)
     )
+
+
+def get_residual_sum_square(
+    df: pl.DataFrame, residual_column: str = "residual"
+) -> float:
+    residuals = df.get_column(residual_column).to_numpy()
+    rss: float = np.sum(residuals**2)
+    return rss
+
+
+def get_residual_bounds(
+    df: pl.DataFrame,
+    residual_column: str = "residual",
+    date_column: str = "ds",
+    date_fmt: str = "%Y-%m-%d %H:%M:%S",
+    baseline: float | int | None = None,
+) -> tuple[float, float]:
+    if baseline is not None:
+        logger.debug("baseline is not None")
+        logger.debug(f"Retrieving baseline DataFrame of {baseline} hours")
+        df = split_df(df, hours=baseline, date_column=date_column, date_fmt=date_fmt)[0]
+    n_baseline_rows = df.shape[0]
+
+    rss = get_residual_sum_square(df, residual_column=residual_column)
+
+    rss_normed = rss / n_baseline_rows
+    rss_upper = 3 * rss_normed ** (1 / 2)
+    rss_lower = -rss_upper
+    return rss_lower, rss_upper

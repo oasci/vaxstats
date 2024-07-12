@@ -1,7 +1,7 @@
 import numpy as np
 
 from vaxstats.io import load_file
-from vaxstats.stats import add_residuals_col, get_column_stats
+from vaxstats.stats import add_residuals_col, get_column_stats, get_residual_bounds
 from vaxstats.utils import split_df
 
 
@@ -33,3 +33,14 @@ def test_residual_stats(path_example_forecast_csv):
     rss = np.sum(residuals**2)
 
     assert np.allclose(rss, 5.1582, atol=0.0001)
+
+
+def test_residual_bounds(path_example_forecast_csv):
+    df = load_file(path_example_forecast_csv, file_type="csv")
+    df = add_residuals_col(df)
+    baseline_days = 7.0
+    baseline_hours = 24 * baseline_days
+    residual_bounds = get_residual_bounds(df, baseline=baseline_hours)
+    assert np.allclose(
+        np.array(residual_bounds), np.array((-0.26462, 0.26462)), atol=0.0001
+    )
