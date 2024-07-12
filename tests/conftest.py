@@ -25,3 +25,8 @@ def path_example_prepped_csv():
 @pytest.fixture
 def path_example_forecast_csv():
     return os.path.join(TEST_DIR, "files/example_forecast.csv")
+
+
+@pytest.fixture
+def path_example_img():
+    return os.path.join(TEST_DIR, "tmp/path_example_img.png")
