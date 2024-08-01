@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 import polars as pl
 
@@ -113,7 +113,10 @@ def prep_forecast_df(
 
 
 def load_file(
-    file_path: str, file_type: str = "excel", *args: Any, **kwargs: Any
+    file_path: str,
+    file_type: None | Literal["csv", "excel"] = None,
+    *args: Any,
+    **kwargs: Any,
 ) -> pl.DataFrame:
     """
     Loads a file into a Polars DataFrame.
@@ -129,7 +132,7 @@ def load_file(
         pl.DataFrame: The loaded DataFrame.
 
     Raises:
-        TypeError: If the file_type is not supported.
+        TypeError: If the `file_type` is not supported.
 
     Examples:
         >>> import polars as pl
@@ -137,10 +140,25 @@ def load_file(
         >>> df = load_file("data.csv", file_type="csv")
 
     """
-    if file_type.lower() == "excel":
-        df: pl.DataFrame = pl.read_excel(file_path, *args, **kwargs)
-    elif file_type.lower() == "csv":
-        df = pl.read_csv(file_path, *args, **kwargs)
+    if file_type is None:
+        if ".xls" in file_path[-6:]:
+            df: pl.DataFrame = pl.read_excel(file_path, *args, **kwargs)
+        elif ".csv" in file_path[-4:]:
+            df = pl.read_csv(file_path, *args, **kwargs)
+        else:
+            raise TypeError("Could not determine file type")
     else:
-        raise TypeError(f"{file_type} is not supported.")
+        if file_type == "excel":
+            df = pl.read_excel(file_path, *args, **kwargs)
+        elif file_type == "csv":
+            df = pl.read_csv(file_path, *args, **kwargs)
+        else:
+            raise TypeError(f"{file_type} is not supported")
     return df
+
+
+def cli_prep(args):
+    df = load_file(args.input_file)
+    df = clean_df(df)
+    df = prep_forecast_df(df, args.date_idx, args.time_idx, args.y_idx)
+    df.write_csv(args.output)

@@ -1,7 +1,5 @@
 from typing import Any
 
-import argparse
-
 import numpy as np
 import polars as pl
 
@@ -73,57 +71,7 @@ def run_forecasting(
     return df
 
 
-def cli_forecasting():
-    """
-    Command-line interface for running the forecasting model on a DataFrame.
-
-    This function uses argparse to parse command-line arguments and executes
-    the run_forecasting function with the specified parameters.
-    """
-    parser = argparse.ArgumentParser(description="Run forecasting on a DataFrame.")
-
-    parser.add_argument("file_path", type=str, help="Path to the input data file.")
-    parser.add_argument(
-        "sf_model", type=str, help="The forecasting model class to be used."
-    )
-    parser.add_argument(
-        "--file_type",
-        type=str,
-        default="csv",
-        choices=["excel", "csv"],
-        help="Type of the input file (excel or csv). Defaults to `csv`.",
-    )
-    parser.add_argument(
-        "--baseline_hours",
-        type=float,
-        default=72.0,
-        help="The time window in hours for the training set. Defaults to 72.0.",
-    )
-    parser.add_argument(
-        "--sf_model_args",
-        type=str,
-        default="()",
-        help="Positional arguments for the forecasting model constructor, in tuple format. Defaults to '()'.",
-    )
-    parser.add_argument(
-        "--sf_model_kwargs",
-        type=str,
-        default="{}",
-        help="Keyword arguments for the forecasting model constructor, in dictionary format. Defaults to '{}'.",
-    )
-    parser.add_argument(
-        "--output_path",
-        type=str,
-        default="output.csv",
-        help="Path to save the output DataFrame with forecasted values. Defaults to 'output.csv'.",
-    )
-
-    args = parser.parse_args()
-
-    # Parse the sf_model_args and sf_model_kwargs
-    sf_model_args = eval(args.sf_model_args)
-    sf_model_kwargs = eval(args.sf_model_kwargs)
-
+def cli_forecast(args, sf_model_args=(), sf_model_kwargs={}):
     # Load the input file
     df = load_file(args.file_path, args.file_type.lower())
 
