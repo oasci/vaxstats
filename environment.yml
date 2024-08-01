@@ -4,7 +4,7 @@ channels:
 dependencies:
   - python=3.12
   - conda-lock
-  - poetry
-  - pre-commit
-  - conda-poetry-liaison
+  - conda-forge::poetry
+  - conda-forge::pre-commit
+  - conda-forge::conda-poetry-liaison
   - nodejs
