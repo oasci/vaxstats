@@ -1,5 +1,8 @@
 from typing import Any, Literal
 
+import ast
+import sys
+
 import polars as pl
 from loguru import logger
 
@@ -162,6 +165,30 @@ def load_file(
         else:
             raise TypeError(f"{file_type} is not supported")
     return df
+
+
+def _parse_args(args_str):
+    logger.debug("Attempting to parse args")
+    try:
+        args = ast.literal_eval(args_str)
+        if not isinstance(args, tuple):
+            args = (args,) if args else ()
+    except (SyntaxError, ValueError) as e:
+        logger.error(f"Error parsing args: {e}")
+        sys.exit(1)
+    return args
+
+
+def _parse_kwargs(kwargs_str):
+    logger.debug("Attempting to parse kwargs")
+    try:
+        kwargs = ast.literal_eval(kwargs_str)
+        if not isinstance(kwargs, dict):
+            raise ValueError("kwargs must be a dictionary")
+    except (SyntaxError, ValueError) as e:
+        logger.error(f"Error parsing kwargs: {e}")
+        sys.exit(1)
+    return kwargs
 
 
 def cli_prep(args):

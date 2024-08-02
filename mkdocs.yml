@@ -76,19 +76,48 @@ plugins:
         order: asc
         sort_type: natural
         order_by: title
+  - git-revision-date-localized:
+      type: iso_datetime
+      timezone: America/Detroit
+      fallback_to_build_date: true
+  - macros
+  - glightbox
+  - mkdocs-jupyter:
+        no_input: False
+        include_requirejs: true
+        include_source: True
+        ignore: ["*.py"]
+        remove_tag_config:
+            remove_input_tags:
+                - hide_code
+
+hooks:
+  - hooks/launchy.py
+colab_base_url: https://colab.research.google.com/github/oasci/vaxstats/blob/main/docs
 
 extra:
-  generator: false
+  generator: true
+  analytics:
+    provider: plausible
+    domain: vaxstats
+  social:
+    - icon: fontawesome/brands/gitlab
+      link: https://gitlab.com/oasci
+      name: OASCI on GitLab
+    - icon: fontawesome/brands/github
+      link: https://github.com/oasci
+      name: OASCI on GitHub
+    - icon: fontawesome/solid/paper-plane
+      link: mailto:us@oasci.org
 
 extra_css:
   - css/base.css
   - css/colors.css
   - css/mkdocstrings.css
+  - css/launchy.css
 
 extra_javascript:
   - js/mathjax-config.js
-  - https://polyfill.io/v3/polyfill.min.js?features=es6
-  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 
 markdown_extensions:
   - abbr
