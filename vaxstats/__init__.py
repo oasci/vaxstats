@@ -8,6 +8,8 @@ from ast import literal_eval
 
 from loguru import logger
 
+__version__ = "0.0.0"
+
 logger.disable("vaxstats")
 
 LOG_FORMAT = (
@@ -32,11 +34,16 @@ def enable_logging(
     config: dict[str, Any] = {"handlers": []}
     if stdout_set:
         config["handlers"].append(
-            {"sink": sys.stdout, "level": level_set, "format": log_format}
+            {
+                "sink": sys.stdout,
+                "level": level_set,
+                "format": log_format,
+                "colorize": True,
+            }
         )
     if isinstance(file_path, str):
         config["handlers"].append(
-            {"sink": file_path, "level": level_set, "format": log_format}
+            {"sink": file_path, "level": level_set, "format": log_format, "False": True}
         )
     # https://loguru.readthedocs.io/en/stable/api/logger.html#loguru._logger.Logger.configure
     logger.configure(**config)

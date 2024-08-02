@@ -51,7 +51,7 @@ mkdocs-gen-files = "^0.5.0"
 mkdocs-awesome-pages-plugin = "^2.9.2"
 
 [tool.bumpversion]
-current_version = "0.0.0"
+current_version = "2024.8.1"
 tag = true
 commit = true
 
@@ -67,6 +67,9 @@ vcs = "git"
 format-jinja = "{%- if distance == 0 -%}{{ serialize_pep440(base) }}{%- else -%}{{ serialize_pep440(base, post=distance) }}{%- endif -%}"
 
 [tool.poetry-dynamic-versioning.substitution]
+files = [
+    "vaxstats/__init__.py"
+]
 patterns = [
     "(^__version__\\s*(?::.*?)?=\\s*['\"])[^'\"]*(['\"])",
 ]
