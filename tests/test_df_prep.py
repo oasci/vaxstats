@@ -43,5 +43,6 @@ def test_prep_cli(capsys, monkeypatch):
     monkeypatch.setattr("sys.argv", cmd)
     main()
     captured = capsys.readouterr()
+    print(captured)
     assert "usage: vaxstats" not in captured
     assert os.path.exists(output_path)

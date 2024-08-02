@@ -2,8 +2,10 @@ from typing import Any
 
 import numpy as np
 import polars as pl
+from loguru import logger
 
 from .io import load_file
+from .log import run_with_progress_logging
 from .utils import split_df
 
 
@@ -63,8 +65,9 @@ def run_forecasting(
     df_train, df_test = split_df(df, hours=baseline_hours)
 
     model = sf_model(*sf_model_args, **sf_model_kwargs)
-    results = model.forecast(
-        y=df_train["y"].to_numpy(), h=df_test.shape[0], fitted=True
+    logger.info("Fitting data")
+    results = run_with_progress_logging(
+        model.forecast, y=df_train["y"].to_numpy(), h=df_test.shape[0], fitted=True
     )
     y_hat = np.concatenate((results["fitted"], results["mean"]))
     df = df.with_columns([pl.Series("y_hat", y_hat)])
@@ -73,7 +76,7 @@ def run_forecasting(
 
 def cli_forecast(args, sf_model_args=(), sf_model_kwargs={}):
     # Load the input file
-    df = load_file(args.file_path, args.file_type.lower())
+    df = load_file(args.file_path)
 
     # Import the forecasting model class dynamically
     module_name, class_name = args.sf_model.rsplit(".", 1)

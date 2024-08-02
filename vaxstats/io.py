@@ -1,6 +1,7 @@
 from typing import Any, Literal
 
 import polars as pl
+from loguru import logger
 
 
 def clean_df(df: pl.DataFrame, col_idx: int = 0) -> pl.DataFrame:
@@ -34,6 +35,7 @@ def clean_df(df: pl.DataFrame, col_idx: int = 0) -> pl.DataFrame:
         │ 2   ┆ NaN │
         └─────┴─────┘
     """
+    logger.info("Cleaning DataFrame")
     df = df.drop_nulls(subset=df.columns[col_idx])
     return df
 
@@ -81,16 +83,18 @@ def prep_forecast_df(
         │ 2023-01-02 14:00:00 ┆ 20    ┆ 0           │
         └─────────────────────┴───────┴─────────────┘
     """
+    logger.info("Preparing DataFrame for statsforecast")
     # Get data into correct schema.
     df = df.select(df.columns[date_idx], df.columns[time_idx], df.columns[y_idx])
-    # Preparing the elapsed time (i.e., ds in statsforecast).
+
+    logger.debug("Renaming columns")
     df = df.with_columns([pl.concat_str(df.columns[:2], separator=" ").alias("ds")])
     df = df.select(df.columns[-1], df.columns[-2])
     df.columns = ["ds", "y"]
     df = df.with_columns(pl.lit(0).alias("unique_id"))
     df = df.select(["unique_id"] + df.columns[:-1])
 
-    # Parse and format datetime.
+    logger.debug(f"Parsing datetimes in `{time_fmt}`")
     df = df.with_columns(
         [
             pl.col("ds")
@@ -98,6 +102,7 @@ def prep_forecast_df(
             .alias("parsed_datetime")
         ]
     )
+    logger.debug("Writing datetimes in `%Y-%m-%d %H:%M:%S`")
     df = df.with_columns(
         [
             pl.col("parsed_datetime")
@@ -140,7 +145,9 @@ def load_file(
         >>> df = load_file("data.csv", file_type="csv")
 
     """
+    logger.info(f"Loading file from: `{file_path}`")
     if file_type is None:
+        logger.debug("Attempt to match file type")
         if ".xls" in file_path[-6:]:
             df: pl.DataFrame = pl.read_excel(file_path, *args, **kwargs)
         elif ".csv" in file_path[-4:]:
@@ -161,4 +168,5 @@ def cli_prep(args):
     df = load_file(args.input_file)
     df = clean_df(df)
     df = prep_forecast_df(df, args.date_idx, args.time_idx, args.y_idx)
+    logger.info(f"Writing forecast output to: `{args.output}`")
     df.write_csv(args.output)

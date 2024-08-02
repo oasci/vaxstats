@@ -1,16 +1,18 @@
 import argparse
 import ast
+import os
 import sys
 
 import yaml
 from loguru import logger
 
-from . import enable_logging
+from . import __version__, enable_logging
 from .forecast import cli_forecast
 from .io import cli_prep
 
 
 def parse_args_kwargs(args_str, kwargs_str):
+    logger.debug("Attempting to parse args and kwargs")
     try:
         args = ast.literal_eval(args_str)
         kwargs = ast.literal_eval(kwargs_str)
@@ -26,7 +28,7 @@ def parse_args_kwargs(args_str, kwargs_str):
 
 def load_yaml_config(file_path):
     try:
-        with open(file_path, "r") as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             return yaml.safe_load(f)
     except Exception as e:
         logger.error(f"Error loading YAML file: {e}")
@@ -41,8 +43,12 @@ def setup_logging(args):
     else:
         log_level = 20  # INFO
 
-    enable_logging(log_level, True, args.logfile, log_format="{message}")
-    logger.configure(handlers=[{"sink": sys.stdout, "level": 20, "format": "{message}"}])  # type: ignore
+    enable_logging(
+        log_level,
+        True,
+        args.logfile,
+        log_format="<level>{level: <8}</level> | {message}",
+    )
 
 
 def main():
@@ -106,19 +112,28 @@ def main():
     )
 
     args = parser.parse_args()
+    setup_logging(args)
+
+    logger.info(f"VaxStats v{__version__} by OASCI <us@oasci.org>")
 
     if args.config:
+        logger.info(f"User provided YAML config file at: `{args.config}`")
+        if not os.path.exists(args.config):
+            logger.critical("File does not exist")
+            logger.critical("Exiting")
+            sys.exit(1)
+        logger.info("Loading YAML file")
         config = load_yaml_config(args.config)
         # Update args with config, prioritizing command-line arguments
         for key, value in config.items():
             if not hasattr(args, key) or getattr(args, key) is None:
                 setattr(args, key, value)
 
-    setup_logging(args)
-
     if args.command == "prep":
+        logger.info("User selected `prep` command")
         cli_prep(args)
     elif args.command == "forecast":
+        logger.info("User selected `forecast` command")
         sf_model_args, sf_model_kwargs = parse_args_kwargs(
             args.sf_model_args, args.sf_model_kwargs
         )
