@@ -12,16 +12,16 @@ from .io import _parse_args, _parse_kwargs, cli_prep
 
 class TimeWindowAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
-        if option_string == "--baseline-days":
+        if option_string == "--baseline_days":
             if getattr(namespace, "baseline_hours", None) is not None:
                 parser.error(
-                    "Only one of --baseline-days or --baseline-hours can be specified."
+                    "Only one of --baseline_days or --baseline_hours can be specified."
                 )
             setattr(namespace, "baseline_hours", values * 24.0)
-        elif option_string == "--baseline-hours":
+        elif option_string == "--baseline_hours":
             if getattr(namespace, "baseline_hours", None) is not None:
                 parser.error(
-                    "Only one of --baseline-days or --baseline-hours can be specified."
+                    "Only one of --baseline_days or --baseline_hours can be specified."
                 )
             setattr(namespace, "baseline_hours", values)
         else:
@@ -92,14 +92,12 @@ def main():
         "--baseline_days",
         type=float,
         action=TimeWindowAction,
-        default=3.0,
         help="The time window in days for the training set. (Select only days or hours.)",
     )
     forecast_parser.add_argument(
         "--baseline_hours",
         type=float,
         action=TimeWindowAction,
-        default=72.0,
         help="The time window in hours for the training set. (Select only days or hours.)",
     )
     forecast_parser.add_argument(
