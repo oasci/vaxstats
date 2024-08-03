@@ -192,7 +192,7 @@ def _parse_kwargs(kwargs_str):
 
 
 def cli_prep(args):
-    df = load_file(args.input_file)
+    df = load_file(args.file_path)
     df = clean_df(df)
     df = prep_forecast_df(df, args.date_idx, args.time_idx, args.y_idx)
     logger.info(f"Writing forecast output to: `{args.output}`")
