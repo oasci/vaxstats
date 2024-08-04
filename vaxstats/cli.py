@@ -55,32 +55,56 @@ def setup_logging(args):
 
 def main():
     parser = argparse.ArgumentParser(description="VaxStats CLI")
-    parser.add_argument("-v", action="store_true", help="More log verbosity")
-    parser.add_argument("-vv", action="store_true", help="Even more log verbosity")
-    parser.add_argument("--logfile", help="Specify a file to write logs to")
-    parser.add_argument("--config", help="Path to YAML configuration file")
+    parser.add_argument("-v", action="store_true", help="More log verbosity.")
+    parser.add_argument("-vv", action="store_true", help="Even more log verbosity.")
+    parser.add_argument("--logfile", help="Specify a file to write logs to.")
+    parser.add_argument("--config", help="Path to YAML configuration file.")
 
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    subparsers = parser.add_subparsers(dest="command", help="Available commands:")
 
     # Prep subcommand
-    prep_parser = subparsers.add_parser("prep", help="Prepare data for analysis")
-    prep_parser.add_argument("file_path", help="Input file to process")
+    prep_parser = subparsers.add_parser("prep", help="Prepare data for analysis.")
+    prep_parser.add_argument("file_path", help="Input file to process.")
     prep_parser.add_argument(
-        "--date_idx", type=int, default=0, help="The index of the date column."
+        "--date_idx", type=int, required=True, help="The index of the date column."
     )
     prep_parser.add_argument(
-        "--time_idx", type=int, default=1, help="The index of the time column."
+        "--time_idx", type=int, required=True, help="The index of the time column."
     )
     prep_parser.add_argument(
-        "--y_idx", type=int, default=2, help="The index of the target variable column."
+        "--y_idx",
+        type=int,
+        required=True,
+        help="The index of the target variable column.",
     )
     prep_parser.add_argument(
-        "--output", type=str, default="output.csv", help="Name to save prepped file to."
+        "--input_date_fmt",
+        type=str,
+        default="%m-%d-%y",
+        help="Format of the input date strings. Default: %%m-%%d-%%y",
+    )
+    prep_parser.add_argument(
+        "--input_time_fmt",
+        type=str,
+        default="%I:%M:%S %p",
+        help="Format of the input time strings. Default: %%I:%%M:%%S %%p",
+    )
+    prep_parser.add_argument(
+        "--output_fmt",
+        type=str,
+        default="%Y-%m-%d %H:%M:%S",
+        help="Format of the output datetime strings. Default: %%Y-%%m-%%d %%H:%%M:%%S",
+    )
+    prep_parser.add_argument(
+        "--output",
+        type=str,
+        default="prepped.csv",
+        help="Name to save prepped file to. Default: prepped.csv.",
     )
 
     # Forecast subcommand
     forecast_parser = subparsers.add_parser(
-        "forecast", help="Perform forecasting on prepared data"
+        "forecast", help="Perform forecasting on prepared data."
     )
     forecast_parser.add_argument(
         "file_path", type=str, help="Path to the input data file."
@@ -104,13 +128,13 @@ def main():
         "--sf_model_args",
         type=str,
         default="()",
-        help="Positional arguments for the forecasting model constructor. Use Python literal syntax, e.g., '(1, \"string\", [1, 2, 3])'",
+        help="Positional arguments for the forecasting model constructor. Use Python literal syntax, e.g., '(1, \"string\", [1, 2, 3])'.",
     )
     forecast_parser.add_argument(
         "--sf_model_kwargs",
         type=str,
         default="{}",
-        help='Keyword arguments for the forecasting model constructor. Use Python dict syntax, e.g., \'{"param1": 1, "param2": "value"}\'',
+        help='Keyword arguments for the forecasting model constructor. Use Python dict syntax, e.g., \'{"param1": 1, "param2": "value"}\'.',
     )
     forecast_parser.add_argument(
         "--output_path",

@@ -48,75 +48,87 @@ def prep_forecast_df(
     date_idx: int,
     time_idx: int,
     y_idx: int,
-    time_fmt: str = "%m-%d-%y %I:%M:%S %p",
+    input_date_fmt: str = "%m-%d-%y",
+    input_time_fmt: str = "%I:%M:%S %p",
+    output_fmt: str = "%Y-%m-%d %H:%M:%S",
 ) -> pl.DataFrame:
     """
     Prepares a DataFrame for forecasting by combining date and time columns,
     and formatting them.
 
     Args:
-        df (pl.DataFrame): The input DataFrame.
-        date_idx (int): The index of the date column.
-        time_idx (int): The index of the time column.
-        y_idx (int): The index of the target variable column.
-        time_fmt (str, optional): The format of the date and time strings.
-            Defaults to "%m-%d-%y %I:%M:%S %p".
+        df: The input DataFrame.
+        date_idx: The index of the date column.
+        time_idx: The index of the time column.
+        y_idx: The index of the target variable column.
+        input_date_fmt: The format of the input date strings. Defaults to "%m-%d-%y".
+        input_time_fmt: The format of the input time strings. Defaults to "%I:%M:%S %p".
+        output_fmt: The format of the output datetime strings.
+            Defaults to "%Y-%m-%d %H:%M:%S".
 
     Returns:
-        pl.DataFrame: A DataFrame with a combined and formatted datetime column
-            ready for forecasting.
+        A DataFrame with a combined and formatted datetime column ready for forecasting.
 
     Raises:
-        IndexError: If any of date_idx, time_idx, or y_idx are out of range of the
-            DataFrame's columns.
-        ValueError: If the date and time strings do not match the specified time_fmt.
+    IndexError: If any of date_idx, time_idx, or y_idx are out of range of the
+        DataFrame's columns.
+    ValueError: If the date and time strings do not match the specified formats.
 
     Examples:
-        >>> import polars as pl
-        >>> data = {'date': ["01-01-23", "01-02-23"], 'time': ["01:00:00 PM", "02:00:00 PM"], 'y': [10, 20]}
-        >>> df = pl.DataFrame(data)
-        >>> prep_forecast_df(df, date_idx=0, time_idx=1, y_idx=2)
-        shape: (2, 3)
-        ┌─────────────────────┬───────┬─────────────┐
-        │ ds                  ┆ y     ┆ unique_id   │
-        │ ---                 ┆ ---   ┆ ---         │
-        │ str                 ┆ i64   ┆ i64         │
-        ╞═════════════════════╪═══════╪═════════════╡
-        │ 2023-01-01 13:00:00 ┆ 10    ┆ 0           │
-        │ 2023-01-02 14:00:00 ┆ 20    ┆ 0           │
-        └─────────────────────┴───────┴─────────────┘
+    >>> import polars as pl
+    >>> data = {'date': ["01-01-23", "01-02-23"], 'time': ["01:00:00 PM", "02:00:00 PM"], 'y': [10, 20]}
+    >>> df = pl.DataFrame(data)
+    >>> prep_forecast_df(df, date_idx=0, time_idx=1, y_idx=2)
+    shape: (2, 3)
+    ┌─────────────────────┬───────┬─────────────┐
+    │ ds                  ┆ y     ┆ unique_id   │
+    │ ---                 ┆ ---   ┆ ---         │
+    │ str                 ┆ i64   ┆ i64         │
+    ╞═════════════════════╪═══════╪═════════════╡
+    │ 2023-01-01 13:00:00 ┆ 10    ┆ 0           │
+    │ 2023-01-02 14:00:00 ┆ 20    ┆ 0           │
+    └─────────────────────┴───────┴─────────────┘
     """
     logger.info("Preparing DataFrame for statsforecast")
-    # Get data into correct schema.
+
+    # Validate column indices
+    if max(date_idx, time_idx, y_idx) >= len(df.columns):
+        raise IndexError("One or more column indices are out of range")
+
+    # Select only the required columns using indices
     df = df.select(df.columns[date_idx], df.columns[time_idx], df.columns[y_idx])
 
-    logger.debug("Renaming columns")
-    df = df.with_columns([pl.concat_str(df.columns[:2], separator=" ").alias("ds")])
-    df = df.select(df.columns[-1], df.columns[-2])
-    df.columns = ["ds", "y"]
-    df = df.with_columns(pl.lit(0).alias("unique_id"))
-    df = df.select(["unique_id"] + df.columns[:-1])
+    logger.debug("Combining date and time columns")
+    df = df.with_columns(
+        [pl.concat_str([df.columns[0], df.columns[1]], separator=" ").alias("ds")]
+    )
 
-    logger.debug(f"Parsing datetimes in `{time_fmt}`")
+    logger.debug(
+        f"Parsing datetimes with date format '{input_date_fmt}' and time format '{input_time_fmt}'"
+    )
     df = df.with_columns(
         [
             pl.col("ds")
-            .str.strptime(pl.Datetime, format=time_fmt)
+            .str.strptime(pl.Datetime, format=f"{input_date_fmt} {input_time_fmt}")
             .alias("parsed_datetime")
         ]
     )
-    logger.debug("Writing datetimes in `%Y-%m-%d %H:%M:%S`")
+
+    logger.debug(f"Writing datetimes in '{output_fmt}'")
     df = df.with_columns(
-        [
-            pl.col("parsed_datetime")
-            .dt.strftime("%Y-%m-%d %H:%M:%S")
-            .alias("formatted_datetime")
-        ]
+        [pl.col("parsed_datetime").dt.strftime(output_fmt).alias("ds")]
     )
-    df = df.with_columns([pl.col("formatted_datetime").alias("ds")])
-    df = df.drop(["parsed_datetime", "formatted_datetime"])
+
+    df = df.drop("parsed_datetime")
+
+    # Rename the y column
+    df = df.rename({df.columns[2]: "y"})
+
+    df = df.with_columns(pl.lit(0).alias("unique_id"))
+    df = df.select(["unique_id", "ds", "y"])
 
     df = df.drop_nulls()
+
     return df
 
 
@@ -192,8 +204,37 @@ def _parse_kwargs(kwargs_str):
 
 
 def cli_prep(args):
+    """
+    Prepare data for analysis using command-line arguments.
+
+    This function loads a file, cleans the DataFrame, prepares it for forecasting,
+    and saves the result to a CSV file.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments parsed by argparse.
+            Expected attributes:
+            - file_path (str): Path to the input file.
+            - date_idx (int): Index of the date column.
+            - time_idx (int): Index of the time column.
+            - y_idx (int): Index of the target variable column.
+            - input_date_fmt (str): Format of the input date strings.
+            - input_time_fmt (str): Format of the input time strings.
+            - output_fmt (str): Format of the output datetime strings.
+            - output (str): Name of the output CSV file.
+
+    Returns:
+        None
+    """
     df = load_file(args.file_path)
     df = clean_df(df)
-    df = prep_forecast_df(df, args.date_idx, args.time_idx, args.y_idx)
-    logger.info(f"Writing forecast output to: `{args.output}`")
+    df = prep_forecast_df(
+        df,
+        args.date_idx,
+        args.time_idx,
+        args.y_idx,
+        input_date_fmt=args.input_date_fmt,
+        input_time_fmt=args.input_time_fmt,
+        output_fmt=args.output_fmt,
+    )
+    logger.info(f"Writing prepared CSV file to: `{args.output}`")
     df.write_csv(args.output)

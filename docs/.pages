@@ -1,4 +1,5 @@
 nav:
     - Home: index.md
+    - Commands: commands
     - Examples: examples
     - API: api
