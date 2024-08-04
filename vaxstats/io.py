@@ -102,6 +102,7 @@ def prep_forecast_df(
     df = df.with_columns(
         [pl.concat_str([df.columns[0], df.columns[1]], separator=" ").alias("ds")]
     )
+    logger.debug(f"Example row: {df[0]}")
 
     logger.debug(
         f"Parsing datetimes with date format '{input_date_fmt}' and time format '{input_time_fmt}'"
@@ -113,6 +114,7 @@ def prep_forecast_df(
             .alias("parsed_datetime")
         ]
     )
+    logger.debug(f"Example row: {df[0]}")
 
     logger.debug(f"Writing datetimes in '{output_fmt}'")
     df = df.with_columns(
@@ -124,10 +126,14 @@ def prep_forecast_df(
     # Rename the y column
     df = df.rename({df.columns[2]: "y"})
 
+    logger.debug("Adding unique_id column")
     df = df.with_columns(pl.lit(0).alias("unique_id"))
     df = df.select(["unique_id", "ds", "y"])
+    logger.debug(f"Example row: {df[0]}")
 
+    n_rows = df.shape[0]
     df = df.drop_nulls()
+    logger.debug(f"Dropped {n_rows - df.shape[0]} rows containing at least one null")
 
     return df
 
@@ -203,6 +209,11 @@ def _parse_kwargs(kwargs_str):
     return kwargs
 
 
+def cli_peak(args):
+    df = load_file(args.file_path)
+    print(df.head(args.n))
+
+
 def cli_prep(args):
     """
     Prepare data for analysis using command-line arguments.
@@ -229,9 +240,9 @@ def cli_prep(args):
     df = clean_df(df)
     df = prep_forecast_df(
         df,
-        args.date_idx,
-        args.time_idx,
-        args.y_idx,
+        date_idx=args.date_idx,
+        time_idx=args.time_idx,
+        y_idx=args.y_idx,
         input_date_fmt=args.input_date_fmt,
         input_time_fmt=args.input_time_fmt,
         output_fmt=args.output_fmt,

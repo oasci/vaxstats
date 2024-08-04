@@ -7,7 +7,7 @@ from loguru import logger
 
 from . import __version__, enable_logging
 from .forecast import cli_forecast
-from .io import _parse_args, _parse_kwargs, cli_prep
+from .io import _parse_args, _parse_kwargs, cli_peak, cli_prep
 
 
 class TimeWindowAction(argparse.Action):
@@ -61,6 +61,11 @@ def main():
     parser.add_argument("--config", help="Path to YAML configuration file.")
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands:")
+
+    # Peak subcommand
+    prep_parser = subparsers.add_parser("peak", help="See how polars will load a file.")
+    prep_parser.add_argument("file_path", help="Input file to peak into.")
+    prep_parser.add_argument("-n", type=int, default=3, help="Number of rows to print.")
 
     # Prep subcommand
     prep_parser = subparsers.add_parser("prep", help="Prepare data for analysis.")
@@ -164,6 +169,8 @@ def main():
     if args.command == "prep":
         logger.info("User selected `prep` command")
         cli_prep(args)
+    elif args.command == "peak":
+        cli_peak(args)
     elif args.command == "forecast":
         logger.info("User selected `forecast` command")
         if isinstance(args.sf_model_args, str):
