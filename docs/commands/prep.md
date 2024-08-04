@@ -46,6 +46,7 @@ vaxstats prep ./data/2024-2-8.xlsx --date_idx 3 --time_idx 2 --y_idx 4 --input_d
 -   For `--input_date_fmt` and `--input_time_fmt`, use Python's [strftime format codes](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes).
 -   Common format specifiers:
     -   `%Y`: Year with century (e.g., 2024)
+    -   `%y`: Year without century as zero-padded decimal number (01, 02, 99).
     -   `%m`: Month as a zero-padded number (01-12)
     -   `%d`: Day of the month as a zero-padded number (01-31)
     -   `%H`: Hour (24-hour clock) as a zero-padded number (00-23)
