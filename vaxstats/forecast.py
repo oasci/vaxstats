@@ -6,8 +6,8 @@ from loguru import logger
 
 from .io import load_file
 from .log import run_with_progress_logging
-from .utils import split_df
 from .stats import add_residuals_col
+from .utils import split_df
 
 
 def run_forecasting(
@@ -17,7 +17,7 @@ def run_forecasting(
     sf_model_args: tuple[Any, ...] = tuple(),
     sf_model_kwargs: dict[str, Any] = dict(),
     *args: Any,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> pl.DataFrame:
     """
     Runs a forecasting model on a DataFrame, splitting it into training and
