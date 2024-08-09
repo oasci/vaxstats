@@ -175,7 +175,7 @@ def main():
         logger.info("User selected `forecast` command")
         if isinstance(args.sf_model_args, str):
             sf_model_args = _parse_args(args.sf_model_args)
-        if isinstance(args.sf_model_args, str):
+        if isinstance(args.sf_model_kwargs, str):
             sf_model_kwargs = _parse_kwargs(args.sf_model_kwargs)
         cli_forecast(args, sf_model_args, sf_model_kwargs)
     else:
