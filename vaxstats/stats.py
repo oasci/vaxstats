@@ -48,6 +48,7 @@ def add_residuals_col(
     true_column: str = "y",
     pred_column: str = "y_hat",
 ) -> pl.DataFrame:
+    logger.info("Computing residuals.")
     return df.with_columns(
         (pl.col(true_column) - pl.col(pred_column)).alias(residual_name)
     )

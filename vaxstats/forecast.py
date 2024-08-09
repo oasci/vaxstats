@@ -7,6 +7,7 @@ from loguru import logger
 from .io import load_file
 from .log import run_with_progress_logging
 from .utils import split_df
+from .stats import add_residuals_col
 
 
 def run_forecasting(
@@ -15,6 +16,8 @@ def run_forecasting(
     baseline_hours: float | int = 72.0,
     sf_model_args: tuple[Any, ...] = tuple(),
     sf_model_kwargs: dict[str, Any] = dict(),
+    *args: Any,
+    **kwargs: Any
 ) -> pl.DataFrame:
     """
     Runs a forecasting model on a DataFrame, splitting it into training and
@@ -71,6 +74,7 @@ def run_forecasting(
     )
     y_hat = np.concatenate((results["fitted"], results["mean"]))
     df = df.with_columns([pl.Series("y_hat", y_hat)])
+    df = add_residuals_col(df, *args, **kwargs)
     return df
 
 
