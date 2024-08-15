@@ -102,7 +102,7 @@ extra:
     domain: vaxstats
   social:
     - icon: fontawesome/brands/gitlab
-      link: https://gitlab.com/oasci
+      link: https://github.com/oasci
       name: OASCI on GitLab
     - icon: fontawesome/brands/github
       link: https://github.com/oasci
