@@ -126,5 +126,3 @@ def test_get_all_stats(example_forecast_df):
         hourly_stats=hourly_stats,
         residual_bounds=residual_bounds,
     )
-    print(stats_dict)
-    exit()
