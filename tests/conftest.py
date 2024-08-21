@@ -3,6 +3,7 @@ import os
 import pytest
 
 from vaxstats import enable_logging
+from vaxstats.io import load_file
 
 TEST_DIR = os.path.dirname(__file__)
 
@@ -30,3 +31,8 @@ def path_example_forecast_csv():
 @pytest.fixture
 def path_example_img():
     return os.path.join(TEST_DIR, "tmp/path_example_img.png")
+
+
+@pytest.fixture
+def example_forecast_df(path_example_forecast_csv):
+    return load_file(path_example_forecast_csv, file_type="csv")
