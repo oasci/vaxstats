@@ -5,3 +5,4 @@
 -   [`peak`](./peak)
 -   [`prep`](./prep)
 -   [`forecast`](./forecast)
+-   [`analyze`](./analyze)
