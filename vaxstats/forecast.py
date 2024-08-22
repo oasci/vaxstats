@@ -7,7 +7,7 @@ from loguru import logger
 from .analysis.residual import add_residuals_col
 from .io import load_file
 from .log import run_with_progress_logging
-from .utils import split_df
+from .utils import split_df, str_to_datetime
 
 
 def run_forecasting(
@@ -81,6 +81,7 @@ def run_forecasting(
 def cli_forecast(args, sf_model_args=(), sf_model_kwargs={}):
     # Load the input file
     df = load_file(args.file_path)
+    df = str_to_datetime(df, date_column="ds", date_fmt="%Y-%m-%d %H:%M:%S")
 
     # Import the forecasting model class dynamically
     module_name, class_name = args.sf_model.rsplit(".", 1)

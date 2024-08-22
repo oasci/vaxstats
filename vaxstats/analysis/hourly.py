@@ -21,7 +21,7 @@ def calculate_hourly_stats(
     """
     return (
         df.with_columns(pl.col(date_column).dt.truncate("1h").alias("hour"))
-        .groupby("hour")
+        .group_by("hour")
         .agg(
             pl.col(data_column).median().alias("y_median"),
             pl.col(pred_column).median().alias("y_hat_median"),

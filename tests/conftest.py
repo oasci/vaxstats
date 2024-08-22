@@ -37,7 +37,6 @@ def path_example_img():
 @pytest.fixture
 def example_forecast_df(path_example_forecast_csv):
     df = load_file(path_example_forecast_csv, file_type="csv")
-    df = str_to_datetime(df, date_column="ds", date_fmt="%Y-%m-%d %H:%M:%S")
     return df
 
 

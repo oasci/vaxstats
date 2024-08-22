@@ -5,6 +5,7 @@ from statsforecast.models import ARIMA
 from vaxstats.cli import main
 from vaxstats.forecast import run_forecasting
 from vaxstats.io import load_file
+from vaxstats.utils import str_to_datetime
 
 
 def test_arima(path_example_prepped_csv):
@@ -15,6 +16,7 @@ def test_arima(path_example_prepped_csv):
         "method": "CSS-ML",  # CSS-ML, ML, CSS
     }
     df = load_file(path_example_prepped_csv, "csv")
+    df = str_to_datetime(df, date_column="ds", date_fmt="%Y-%m-%d %H:%M:%S")
     baseline_days = 7.0
     baseline_hours = 24 * baseline_days
     df = run_forecasting(

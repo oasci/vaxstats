@@ -5,7 +5,7 @@ from vaxstats.analysis.forecast import detect_fever_hypothermia, run_analysis
 from vaxstats.analysis.hourly import add_hourly_thresholds, calculate_hourly_stats
 from vaxstats.analysis.residual import add_residuals_col, get_residual_bounds
 from vaxstats.analysis.stats import get_column_stat, get_column_stats
-from vaxstats.utils import get_baseline_df
+from vaxstats.utils import get_baseline_df, str_to_datetime
 
 
 def test_get_column_stat(example_forecast_df):
@@ -44,8 +44,9 @@ def test_residual_bounds(example_forecast_df_baseline):
 
 
 def test_calculate_hourly_stats(example_forecast_df_baseline):
+    df = example_forecast_df_baseline
     hourly_stats = calculate_hourly_stats(
-        example_forecast_df_baseline,
+        df,
         data_column="y",
         pred_column="y_hat",
         date_column="ds",
@@ -77,6 +78,7 @@ def test_calculate_hourly_stats(example_forecast_df_baseline):
 def test_calculate_thresholds(example_forecast_df, baseline_hours):
     df = example_forecast_df
     df = add_residuals_col(df)
+    df = str_to_datetime(df, date_column="ds", date_fmt="%Y-%m-%d %H:%M:%S")
     df_baseline = get_baseline_df(df, baseline=baseline_hours)
 
     residual_lower, residual_upper = get_residual_bounds(df_baseline)
@@ -103,6 +105,7 @@ def test_calculate_thresholds(example_forecast_df, baseline_hours):
 def test_detect_fever_hypothermia(example_forecast_df, baseline_hours):
     df = example_forecast_df
     df = add_residuals_col(df)
+    df = str_to_datetime(df, date_column="ds", date_fmt="%Y-%m-%d %H:%M:%S")
     hourly_stats, residual_bounds = detect_fever_hypothermia(
         df, baseline=baseline_hours
     )
@@ -126,6 +129,7 @@ def test_detect_fever_hypothermia(example_forecast_df, baseline_hours):
 def test_get_all_stats(example_forecast_df, baseline_hours):
     df = example_forecast_df
     df = add_residuals_col(df)
+    df = str_to_datetime(df, date_column="ds", date_fmt="%Y-%m-%d %H:%M:%S")
 
     results = run_analysis(
         df,
