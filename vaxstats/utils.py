@@ -12,7 +12,6 @@ def split_df(
     df: pl.DataFrame,
     hours: float | int | Collection[float | int] = 72.0,
     date_column: str = "ds",
-    date_fmt: str = "%Y-%m-%d %H:%M:%S",
     *args: tuple[Any, ...],
     **kwargs: dict[str, Any],
 ) -> tuple[pl.DataFrame, ...]:
@@ -30,8 +29,6 @@ def split_df(
             -   Up to, but not including, `24` hours,
             -   Any rows at and after `24` hours.
         date_column: column name containing date information.
-        date_fmt: [Date format codes](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes)
-            for date column.
         *args: Additional positional arguments.
         **kwargs: Additional keyword arguments.
 
@@ -89,7 +86,6 @@ def split_df(
         hours = (hours,)
     logger.info(f"Splitting DataFrame into {len(hours) + 1}")
 
-    df = df.with_columns(pl.col(date_column).str.strptime(pl.Datetime, date_fmt))
     earliest_time = df.select(pl.col(date_column).min()).item()
     logger.debug(f"Earliest time found: {earliest_time}")
 
@@ -114,6 +110,15 @@ def split_df(
     return tuple(splits)
 
 
+def str_to_datetime(
+    df: pl.DataFrame, date_column: str = "ds", date_fmt: str = "%Y-%m-%d %H:%M:%S"
+) -> pl.DataFrame:
+    """
+    Converts DataFrame datetime column strings to datetimes.
+    """
+    return df.with_columns(pl.col(date_column).str.strptime(pl.Datetime, date_fmt))
+
+
 def datetime_to_float(
     df: pl.DataFrame,
     time_unit: Literal["hours", "days"] = "days",
@@ -131,3 +136,28 @@ def datetime_to_float(
         [(date - earliest_date).total_seconds() * time_factor for date in dates]
     )
     return time
+
+
+def get_baseline_df(
+    df: pl.DataFrame,
+    date_column: str = "ds",
+    date_fmt: str = "%Y-%m-%d %H:%M:%S",
+    baseline: float | int | None = None,
+) -> pl.DataFrame:
+    """
+    Get baseline DataFrame if baseline is provided.
+
+    Args:
+        df: The input DataFrame.
+        date_column: The name of the date column in the DataFrame.
+        date_fmt: The date format string for parsing the date column.
+        baseline: The number of hours to use as baseline. If `None`, returns the
+            original DataFrame.
+
+    Returns:
+        The baseline DataFrame or the original DataFrame if baseline is None.
+    """
+    if baseline is not None:
+        logger.debug(f"Retrieving baseline DataFrame of {baseline} hours")
+        return split_df(df, hours=baseline, date_column=date_column)[0]
+    return df

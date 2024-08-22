@@ -8,6 +8,7 @@ from loguru import logger
 from . import __version__, enable_logging
 from .forecast import cli_forecast
 from .io import _parse_args, _parse_kwargs, cli_peak, cli_prep
+from .stats import cli_analysis
 
 
 class TimeWindowAction(argparse.Action):
@@ -148,6 +149,60 @@ def main():
         help="Path to save the output DataFrame with forecasted values. Defaults to 'output.csv'.",
     )
 
+    # Analysis subcommand
+    analysis_parser = subparsers.add_parser("analyze", help="Analyze forecasted data.")
+    analysis_parser.add_argument(
+        "file_path", type=str, help="Path to forecasted output file."
+    )
+    analysis_parser.add_argument(
+        "--baseline_days",
+        type=float,
+        action=TimeWindowAction,
+        help="The time window in days for the training set. (Select only days or hours.)",
+    )
+    analysis_parser.add_argument(
+        "--baseline_hours",
+        type=float,
+        action=TimeWindowAction,
+        help="The time window in hours for the training set. (Select only days or hours.)",
+    )
+    analysis_parser.add_argument(
+        "--data_column",
+        type=str,
+        default="y",
+        help="Column name containing observed data.",
+    )
+    analysis_parser.add_argument(
+        "--pred_column",
+        type=str,
+        default="y_hat",
+        help="Column name containing predicted data.",
+    )
+    analysis_parser.add_argument(
+        "--residual_column",
+        type=str,
+        default="residual",
+        help="Column name containing residuals.",
+    )
+    analysis_parser.add_argument(
+        "--date_column",
+        type=str,
+        default="ds",
+        help="Column name containing datetime data.",
+    )
+    analysis_parser.add_argument(
+        "--datetime_fmt",
+        type=str,
+        default="%Y-%m-%d %H:%M:%S",
+        help="Format of the input date strings. Default: %%m-%%d-%%y",
+    )
+    analysis_parser.add_argument(
+        "--output_path",
+        type=str,
+        default="analysis.json",
+        help="Path to save the output JSON with analysis. Defaults to 'analysis.json'.",
+    )
+
     args = parser.parse_args()
     setup_logging(args)
 
@@ -170,6 +225,7 @@ def main():
         logger.info("User selected `prep` command")
         cli_prep(args)
     elif args.command == "peak":
+        logger.info("User selected `peak` command")
         cli_peak(args)
     elif args.command == "forecast":
         logger.info("User selected `forecast` command")
@@ -178,6 +234,9 @@ def main():
         if isinstance(args.sf_model_kwargs, str):
             sf_model_kwargs = _parse_kwargs(args.sf_model_kwargs)
         cli_forecast(args, sf_model_args, sf_model_kwargs)
+    elif args.command == "analyze":
+        logger.info("User selected `analyze` command")
+        cli_analysis(args)
     else:
         parser.print_help()
         sys.exit(1)

@@ -2,33 +2,25 @@ import numpy as np
 import polars as pl
 
 from vaxstats.stats import (
+    add_hourly_thresholds,
     add_residuals_col,
     calculate_hourly_stats,
-    calculate_thresholds,
-    compute_stats_dict,
     detect_fever_hypothermia,
     get_column_stat,
     get_column_stats,
     get_residual_bounds,
+    run_analysis,
 )
-from vaxstats.utils import split_df
-
-baseline_days = 7.0
-baseline_hours = 24 * baseline_days
+from vaxstats.utils import get_baseline_df
 
 
 def test_get_column_stat(example_forecast_df):
-    result = get_column_stat(example_forecast_df, "y", pl.mean)
-    assert np.isclose(result, 37.89085, atol=0.0001)
+    hourly_stats = get_column_stat(example_forecast_df, "y", pl.mean)
+    assert np.isclose(hourly_stats, 37.89085, atol=0.0001)
 
 
-def test_baseline_stats(example_forecast_df):
-    df = example_forecast_df
-
-    baseline_days = 7.0
-    baseline_hours = 24 * baseline_days
-
-    baseline_stats = get_column_stats(df, baseline=baseline_hours)
+def test_baseline_stats(example_forecast_df_baseline):
+    baseline_stats = get_column_stats(example_forecast_df_baseline, column_name="y")
 
     # R code provides 37.6796, but I think this is a bug because
     # they do not drop blank rows.
@@ -38,10 +30,8 @@ def test_baseline_stats(example_forecast_df):
     assert np.allclose(baseline_stats["std"], 0.7278, atol=0.0001)
 
 
-def test_residual_stats(example_forecast_df):
-    df = example_forecast_df
-
-    df = split_df(df, hours=baseline_hours)[0]
+def test_residual_stats(example_forecast_df_baseline):
+    df = example_forecast_df_baseline
 
     df = add_residuals_col(df)
     residuals = df.get_column("residual").to_numpy()
@@ -50,75 +40,63 @@ def test_residual_stats(example_forecast_df):
     assert np.allclose(rss, 5.1582, atol=0.0001)
 
 
-def test_residual_bounds(example_forecast_df):
-    df = example_forecast_df
+def test_residual_bounds(example_forecast_df_baseline):
+    df = example_forecast_df_baseline
     df = add_residuals_col(df)
-    residual_bounds = get_residual_bounds(df, baseline=baseline_hours)
+    residual_bounds = get_residual_bounds(df)
     assert np.allclose(
         np.array(residual_bounds), np.array((-0.26462, 0.26462)), atol=0.0001
     )
 
 
-def test_calculate_hourly_stats(example_forecast_df):
-    result = calculate_hourly_stats(example_forecast_df, data_column="y")
-    print(result)
+def test_calculate_hourly_stats(example_forecast_df_baseline):
+    hourly_stats = calculate_hourly_stats(
+        example_forecast_df_baseline,
+        data_column="y",
+        pred_column="y_hat",
+        date_column="ds",
+    )
 
-    assert result.shape[0] > 0
-    assert "hourly_median_temp" in result.columns
-    assert "start_time" in result.columns
-    assert "end_time" in result.columns
-    assert "data_points" in result.columns
+    assert "y_median" in hourly_stats.columns
+    assert "y_hat_median" in hourly_stats.columns
+    assert "start_time" in hourly_stats.columns
+    assert "end_time" in hourly_stats.columns
+    assert "data_points" in hourly_stats.columns
 
     # Check if the hours are unique and sorted
-    assert result["hour"].is_unique().all()
+    assert hourly_stats["hour"].is_unique().all()
 
     # Check if start_time is always less than or equal to end_time
-    assert (result["start_time"] <= result["end_time"]).all()
+    assert (hourly_stats["start_time"] <= hourly_stats["end_time"]).all()
 
     # Check if data_points is always positive
-    assert (result["data_points"] > 0).all()
+    assert (hourly_stats["data_points"] > 0).all()
 
-    temps_hourly_median = result["hourly_median_temp"].to_numpy()
+    temps_hourly_median = hourly_stats["y_hat_median"].to_numpy()
     assert np.allclose(
-        temps_hourly_median[:4], np.array([39.0015, 38.822, 38.784, 38.3575])
+        temps_hourly_median[:4],
+        np.array([38.9624986, 38.78317825, 38.74521667, 38.3191432]),
     )
-    assert np.allclose(temps_hourly_median[-1], np.array([38.4795]))
+    assert np.allclose(temps_hourly_median[-1], np.array([38.8151678]))
 
 
-def test_calculate_thresholds(example_forecast_df):
-    example_forecast_df = add_residuals_col(example_forecast_df)
-    hourly_stats = calculate_hourly_stats(example_forecast_df, data_column="y_hat")
-    residual_lower, residual_upper = get_residual_bounds(
-        example_forecast_df, baseline=baseline_hours
+def test_calculate_thresholds(example_forecast_df, baseline_hours):
+    df = example_forecast_df
+    df = add_residuals_col(df)
+    df_baseline = get_baseline_df(df, baseline=baseline_hours)
+
+    residual_lower, residual_upper = get_residual_bounds(df_baseline)
+    hourly_stats = calculate_hourly_stats(
+        df, data_column="y", pred_column="y_hat", date_column="ds"
     )
-    result = calculate_thresholds(hourly_stats, residual_upper, residual_lower)
+    hourly_stats = add_hourly_thresholds(hourly_stats, residual_lower, residual_upper)
 
-    assert result.shape[1] == 7
-    assert "fever_threshold" in result.columns
-    assert "hypo_threshold" in result.columns
+    assert hourly_stats.shape[1] == 8
+    assert "fever_threshold" in hourly_stats.columns
+    assert "hypo_threshold" in hourly_stats.columns
 
-    fever_threshold = result["fever_threshold"].to_numpy()
-    hypo_threshold = result["hypo_threshold"].to_numpy()
-
-    assert np.allclose(
-        fever_threshold[:3], np.array([39.22711414, 39.0477938, 39.00983221])
-    )
-    assert np.allclose(
-        hypo_threshold[:3], np.array([38.69788305, 38.51856271, 38.48060112])
-    )
-
-
-def test_detect_fever_hypothermia(example_forecast_df):
-    example_forecast_df = add_residuals_col(example_forecast_df)
-    result = detect_fever_hypothermia(example_forecast_df, baseline=baseline_hours)
-
-    assert result.shape[1] == 7  # Should have 5 columns
-    assert "hourly_median_temp" in result.columns
-    assert "fever_threshold" in result.columns
-    assert "hypo_threshold" in result.columns
-
-    fever_threshold = result["fever_threshold"].to_numpy()
-    hypo_threshold = result["hypo_threshold"].to_numpy()
+    fever_threshold = hourly_stats["fever_threshold"].to_numpy()
+    hypo_threshold = hourly_stats["hypo_threshold"].to_numpy()
 
     assert np.allclose(
         fever_threshold[:3], np.array([39.22711414, 39.0477938, 39.00983221])
@@ -128,22 +106,46 @@ def test_detect_fever_hypothermia(example_forecast_df):
     )
 
 
-def test_get_all_stats(example_forecast_df):
-    df = add_residuals_col(example_forecast_df)
-    baseline_days = 7.0
-    baseline_hours = 24 * baseline_days
-
-    hourly_stats = detect_fever_hypothermia(
-        df, pred_column="y_hat", baseline=baseline_hours
+def test_detect_fever_hypothermia(example_forecast_df, baseline_hours):
+    df = example_forecast_df
+    df = add_residuals_col(df)
+    hourly_stats, residual_bounds = detect_fever_hypothermia(
+        df, baseline=baseline_hours
     )
 
-    residual_bounds = get_residual_bounds(df, baseline=baseline_hours)
+    assert hourly_stats.shape[1] == 8
+    assert "y_hat_median" in hourly_stats.columns
+    assert "fever_threshold" in hourly_stats.columns
+    assert "hypo_threshold" in hourly_stats.columns
 
-    stats_dict = compute_stats_dict(
+    fever_threshold = hourly_stats["fever_threshold"].to_numpy()
+    hypo_threshold = hourly_stats["hypo_threshold"].to_numpy()
+
+    assert np.allclose(
+        fever_threshold[:3], np.array([39.22711414, 39.0477938, 39.00983221])
+    )
+    assert np.allclose(
+        hypo_threshold[:3], np.array([38.69788305, 38.51856271, 38.48060112])
+    )
+
+
+def test_get_all_stats(example_forecast_df, baseline_hours):
+    df = example_forecast_df
+    df = add_residuals_col(df)
+
+    results = run_analysis(
         df,
+        baseline=baseline_hours,
         data_column="y",
+        pred_column="y_hat",
         residual_column="residual",
-        hourly_stats=hourly_stats,
-        residual_bounds=residual_bounds,
     )
-    print(stats_dict)
+    assert results["baseline_stats"]["degrees_of_freedom"] == 2721
+    assert np.allclose(results["baseline_stats"]["average_temp"], 37.89085)
+    assert np.allclose(results["baseline_stats"]["std_dev_temp"], 0.70588941)
+    assert np.allclose(results["baseline_stats"]["residual_sum_squares"], 1911.0984)
+    assert np.allclose(results["residual_stats"]["max_residual"], 2.70556)
+    assert np.allclose(results["residual_stats"]["residual_upper_bound"], 0.264615542)
+    assert np.allclose(results["duration_stats"]["total_duration_hours"], 693.210555)
+    assert results["duration_stats"]["fever_hours"] == 261
+    assert results["duration_stats"]["hypothermia_hours"] == 157
