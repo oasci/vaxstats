@@ -28,8 +28,8 @@ jobs:
 
       - name: Install package
         run: |
-          pip install poetry
-          poetry install --no-interaction --with test
+          pip install pytest pytest-cov pytest-html coverage colorama
+          pip install .
 
       - name: Run tests
         run: pytest -c pyproject.toml --cov=vaxstats --cov-report=xml --junit-xml=report.xml --color=yes tests/
