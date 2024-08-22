@@ -61,7 +61,7 @@ The `analyze` command will generate a JSON file (default name: `analysis.json`) 
 
 ```json
 {
-  "baseline_stats": {
+  "baseline": {
     "degrees_of_freedom": int,
     "average_temp": float,
     "std_dev_temp": float,
@@ -69,12 +69,12 @@ The `analyze` command will generate a JSON file (default name: `analysis.json`) 
     "min_temp": float,
     "residual_sum_squares": float
   },
-  "residual_stats": {
+  "residual": {
     "max_residual": float,
     "residual_lower_bound": float,
     "residual_upper_bound": float
   },
-  "duration_stats": {
+  "duration": {
     "total_duration_hours": float,
     "fever_hours": int,
     "hypothermia_hours": int

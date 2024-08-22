@@ -115,9 +115,9 @@ def run_analysis(
 
     # Combine all statistics into a single dictionary
     stats_dict = {
-        "baseline_stats": baseline_stats,
-        "residual_stats": residual_stats,
-        "duration_stats": duration_stats,
+        "baseline": baseline_stats,
+        "residual": residual_stats,
+        "duration": duration_stats,
     }
 
     return stats_dict

@@ -138,12 +138,12 @@ def test_get_all_stats(example_forecast_df, baseline_hours):
         pred_column="y_hat",
         residual_column="residual",
     )
-    assert results["baseline_stats"]["degrees_of_freedom"] == 2721
-    assert np.allclose(results["baseline_stats"]["average_temp"], 37.89085)
-    assert np.allclose(results["baseline_stats"]["std_dev_temp"], 0.70588941)
-    assert np.allclose(results["baseline_stats"]["residual_sum_squares"], 1911.0984)
-    assert np.allclose(results["residual_stats"]["max_residual"], 2.70556)
-    assert np.allclose(results["residual_stats"]["residual_upper_bound"], 0.264615542)
-    assert np.allclose(results["duration_stats"]["total_duration_hours"], 693.210555)
-    assert results["duration_stats"]["fever_hours"] == 261
-    assert results["duration_stats"]["hypothermia_hours"] == 157
+    assert results["baseline"]["degrees_of_freedom"] == 2721
+    assert np.allclose(results["baseline"]["average_temp"], 37.89085)
+    assert np.allclose(results["baseline"]["std_dev_temp"], 0.70588941)
+    assert np.allclose(results["baseline"]["residual_sum_squares"], 1911.0984)
+    assert np.allclose(results["residual"]["max_residual"], 2.70556)
+    assert np.allclose(results["residual"]["residual_upper_bound"], 0.264615542)
+    assert np.allclose(results["duration"]["total_duration_hours"], 693.210555)
+    assert results["duration"]["fever_hours"] == 261
+    assert results["duration"]["hypothermia_hours"] == 157
