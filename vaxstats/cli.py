@@ -6,9 +6,9 @@ import yaml
 from loguru import logger
 
 from . import __version__, enable_logging
+from .analysis.forecast import cli_analysis
 from .forecast import cli_forecast
 from .io import _parse_args, _parse_kwargs, cli_peak, cli_prep
-from .stats import cli_analysis
 
 
 class TimeWindowAction(argparse.Action):

@@ -1,16 +1,10 @@
 import numpy as np
 import polars as pl
 
-from vaxstats.stats import (
-    add_hourly_thresholds,
-    add_residuals_col,
-    calculate_hourly_stats,
-    detect_fever_hypothermia,
-    get_column_stat,
-    get_column_stats,
-    get_residual_bounds,
-    run_analysis,
-)
+from vaxstats.analysis.forecast import detect_fever_hypothermia, run_analysis
+from vaxstats.analysis.hourly import add_hourly_thresholds, calculate_hourly_stats
+from vaxstats.analysis.residual import add_residuals_col, get_residual_bounds
+from vaxstats.analysis.stats import get_column_stat, get_column_stats
 from vaxstats.utils import get_baseline_df
 
 

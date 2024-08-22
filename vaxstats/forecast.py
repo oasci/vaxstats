@@ -4,9 +4,9 @@ import numpy as np
 import polars as pl
 from loguru import logger
 
+from .analysis.residual import add_residuals_col
 from .io import load_file
 from .log import run_with_progress_logging
-from .stats import add_residuals_col
 from .utils import split_df
 
 
