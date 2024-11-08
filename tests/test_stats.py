@@ -75,10 +75,14 @@ def test_calculate_hourly_stats(example_forecast_df_baseline):
     assert np.allclose(temps_hourly_median[-1], np.array([38.8151678]))
 
 
-def test_calculate_thresholds(example_forecast_df, baseline_hours):
+def test_calculate_thresholds(example_forecast_df):
     df = example_forecast_df
     df = add_residuals_col(df)
     df = str_to_datetime(df, date_column="ds", date_fmt="%Y-%m-%d %H:%M:%S")
+
+    baseline_days = 7.0
+    baseline_hours = 24 * baseline_days
+
     df_baseline = get_baseline_df(df, baseline=baseline_hours)
 
     residual_lower, residual_upper = get_residual_bounds(df_baseline)
@@ -102,10 +106,14 @@ def test_calculate_thresholds(example_forecast_df, baseline_hours):
     )
 
 
-def test_detect_fever_hypothermia(example_forecast_df, baseline_hours):
+def test_detect_fever_hypothermia(example_forecast_df):
     df = example_forecast_df
     df = add_residuals_col(df)
     df = str_to_datetime(df, date_column="ds", date_fmt="%Y-%m-%d %H:%M:%S")
+
+    baseline_days = 7.0
+    baseline_hours = 24 * baseline_days
+
     hourly_stats, residual_bounds = detect_fever_hypothermia(
         df, baseline=baseline_hours
     )
@@ -126,10 +134,13 @@ def test_detect_fever_hypothermia(example_forecast_df, baseline_hours):
     )
 
 
-def test_get_all_stats(example_forecast_df, baseline_hours):
+def test_get_all_stats(example_forecast_df):
     df = example_forecast_df
-    df = add_residuals_col(df)
     df = str_to_datetime(df, date_column="ds", date_fmt="%Y-%m-%d %H:%M:%S")
+    df = add_residuals_col(df)
+
+    baseline_days = 7.0
+    baseline_hours = 24 * baseline_days
 
     results = run_analysis(
         df,
@@ -138,12 +149,37 @@ def test_get_all_stats(example_forecast_df, baseline_hours):
         pred_column="y_hat",
         residual_column="residual",
     )
-    assert results["baseline"]["degrees_of_freedom"] == 2721
-    assert np.allclose(results["baseline"]["average_temp"], 37.89085)
-    assert np.allclose(results["baseline"]["std_dev_temp"], 0.70588941)
-    assert np.allclose(results["baseline"]["residual_sum_squares"], 1911.0984)
+    assert results["baseline"]["degrees_of_freedom"] == 663
+    assert np.allclose(results["baseline"]["average_temp"], 37.6765)
+    assert np.allclose(results["baseline"]["std_dev_temp"], 0.72782)
+    assert np.allclose(results["baseline"]["residual_sum_squares"], 5.1582)
     assert np.allclose(results["residual"]["max_residual"], 2.70556)
     assert np.allclose(results["residual"]["residual_upper_bound"], 0.264615542)
     assert np.allclose(results["duration"]["total_duration_hours"], 693.210555)
     assert results["duration"]["fever_hours"] == 261
     assert results["duration"]["hypothermia_hours"] == 157
+
+def test_get_all_stats_m3924(m3924_forecast_df):
+    df = m3924_forecast_df
+    df = str_to_datetime(df, date_column="ds", date_fmt="%Y-%m-%dT%H:%M:%S%.f")
+    df = add_residuals_col(df)
+
+    baseline_days = 3.0
+    baseline_hours = 24 * baseline_days
+
+    results = run_analysis(
+        df,
+        baseline=baseline_hours,
+        data_column="y",
+        pred_column="y_hat",
+        residual_column="residual",
+    )
+    assert results["baseline"]["degrees_of_freedom"] == 288
+    assert np.allclose(results["baseline"]["average_temp"], 37.75336)
+    assert np.allclose(results["baseline"]["std_dev_temp"], 0.56774)
+    assert np.allclose(results["baseline"]["residual_sum_squares"], 2.74906)
+    assert np.allclose(results["residual"]["max_residual"], 3.21165)
+    assert np.allclose(results["residual"]["residual_upper_bound"], 0.2931)
+    assert np.allclose(results["duration"]["total_duration_hours"], 248.75)
+    assert results["duration"]["fever_hours"] == 154
+    assert results["duration"]["hypothermia_hours"] == 9

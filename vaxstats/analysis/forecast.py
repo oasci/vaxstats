@@ -82,14 +82,16 @@ def run_analysis(
         baseline=baseline,
     )
 
+    df_baseline = get_baseline_df(df, date_column, date_fmt, baseline)
+
     # Compute baseline statistics
     baseline_stats = {
-        "degrees_of_freedom": df.shape[0],
-        "average_temp": float(get_column_mean(df, data_column)),
-        "std_dev_temp": float(get_column_std(df, data_column)),
-        "max_temp": float(get_column_max(df, data_column)),
-        "min_temp": float(get_column_min(df, data_column)),
-        "residual_sum_squares": float(get_residual_sum_square(df, residual_column)),
+        "degrees_of_freedom": df_baseline.shape[0],
+        "average_temp": float(get_column_mean(df_baseline, data_column)),
+        "std_dev_temp": float(get_column_std(df_baseline, data_column)),
+        "max_temp": float(get_column_max(df_baseline, data_column)),
+        "min_temp": float(get_column_min(df_baseline, data_column)),
+        "residual_sum_squares": float(get_residual_sum_square(df_baseline, residual_column)),
     }
 
     # Compute residual statistics

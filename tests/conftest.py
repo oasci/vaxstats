@@ -37,6 +37,9 @@ def path_m3924_prepped_csv():
 def path_example_forecast_csv():
     return os.path.join(TEST_DIR, "files/example_forecast.csv")
 
+@pytest.fixture
+def path_forecast_csv_m3924():
+    return os.path.join(TEST_DIR, "files/test-m3924-forecast.csv")
 
 @pytest.fixture
 def path_example_img():
@@ -48,16 +51,16 @@ def example_forecast_df(path_example_forecast_csv):
     df = load_file(path_example_forecast_csv, file_type="csv")
     return df
 
+@pytest.fixture
+def m3924_forecast_df(path_forecast_csv_m3924):
+    df = load_file(path_forecast_csv_m3924, file_type="csv")
+    return df
 
 @pytest.fixture
-def baseline_hours():
+def example_forecast_df_baseline(path_example_forecast_csv):
     baseline_days = 7.0
     baseline_hours = 24 * baseline_days
-    return baseline_hours
 
-
-@pytest.fixture
-def example_forecast_df_baseline(path_example_forecast_csv, baseline_hours):
     df = load_file(path_example_forecast_csv, file_type="csv")
     df = str_to_datetime(df, date_column="ds", date_fmt="%Y-%m-%d %H:%M:%S")
     return get_baseline_df(df=df, date_column="ds", baseline=baseline_hours)
