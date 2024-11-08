@@ -54,7 +54,6 @@ plugins:
   - search
   - autorefs
   - material-plausible
-  - table-reader
   - gen-files:
       scripts:
         - docs/gen_ref_pages.py
@@ -81,6 +80,7 @@ plugins:
       timezone: America/Detroit
       fallback_to_build_date: true
   - macros
+  - table-reader
   - glightbox
   - mkdocs-jupyter:
         no_input: False

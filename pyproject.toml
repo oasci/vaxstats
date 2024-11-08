@@ -8,51 +8,98 @@ authors = [
 license = "Apache-2.0"
 readme = "README.md"
 
-[tool.poetry.dependencies]
-python = "^3.10"
-loguru = "^0.7.2"
-polars = "^0.20.31"
-statsforecast = "^1.7.5"
-xlsx2csv = "^0.8.2"
-pandas = "^2.2.2"
-matplotlib = "^3.9.1"
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[tool.pixi.environments]
+dev = ["dev"]
+docs = ["docs"]
+
+[tool.pixi.pypi-dependencies]
+vaxstats = { path = ".", editable = true }
+
+[tool.pixi.tasks]
+mdlint = { cmd = [
+    "markdownlint-cli2",
+    '"**/*.{md,markdown}"',
+    "--fix",
+    "--config",
+    ".markdownlint.yaml",
+    "||",
+    "true"
+]}
+isort = { cmd = ["isort", "--settings-path", "pyproject.toml", "./content"] }
+black = { cmd = ["black", "--config", "pyproject.toml", "./content"] }
+format = { depends-on = ["mdlint", "isort", "black"] }
+
+[tool.pixi.dependencies]
+python = ">=3.11.0,<3.13"
+polars = ">=1.12.0,<2"
+loguru = ">=0.7.2,<0.8"
+statsforecast = ">=1.7.8,<2"
+xlsx2csv = ">=0.8.3,<0.9"
+pandas = ">=2.2.3,<3"
+matplotlib = ">=3.9.2,<4"
+
+[tool.pixi.feature.dev.dependencies]
+ruff = ">=0.7.2,<0.8"
+black = ">=24.10.0,<25"
+isort = ">=5.13.2,<6"
+mypy = ">=1.13.0,<2"
+twine = ">=5.1.1,<6"
+bump-my-version = ">=0.28.1,<0.29"
+pytest = ">=8.3.3,<9"
+pytest-cov = ">=6.0.0,<7"
+coverage = ">=7.6.4,<8"
+pip = ">=24.3.1,<25"
+
+[tool.pixi.feature.dev.tasks]
+mdlint = { cmd = ["markdownlint-cli2", '"**/*.{md,markdown}"', "--fix", "--config", ".markdownlint.yaml", "||", "true"] }
+isort = { cmd = ["isort", "--settings-path", "pyproject.toml", "./content"] }
+black = { cmd = ["black", "--config", "pyproject.toml", "./content"] }
+format = { depends-on = ["mdlint", "isort", "black"] }
+tests = { cmd = [
+    "pytest",
+    "-c",
+    "pyproject.toml",
+    "--cov='vaxstats'",
+    "--cov-report=xml",
+    "--junit-xml=report.xml",
+    "tests"
+]}
+coverage = { cmd = ["coverage", "report"] }
+cleanup-build = { cmd = ["rm", "-rf", "./build"] }
+build = { cmd = ["python3", "-m", "build"], depends-on = ["cleanup-build"]}
+publish-test = { cmd = ["twine", "upload", "--repository", "testpypi", "dist/*"] }
+publish = { cmd = ["twine", "upload", "dist/*"] }
+
+[tool.pixi.feature.dev.pypi-dependencies]
+build = ">=1.2.2.post1,<2"
+
+[tool.pixi.feature.docs.dependencies]
+mkdocs = ">=1.6.1,<2"
+mkdocs-material = ">=9.5.44,<10"
+pymdown-extensions = ">=10.12,<11"
+mkdocs-table-reader-plugin = ">=3.1.0,<4"
+mkdocstrings = ">=0.26.2,<0.27"
+mkdocstrings-python = ">=1.12.2,<2"
+mkdocs-gen-files = ">=0.4.0,<0.5"
+mkdocs-macros-plugin = ">=1.3.7,<2"
+mkdocs-jupyter = ">=0.25.0,<0.26"
+mkdocs-glightbox = ">=0.4.0,<0.5"
+mkdocs-git-revision-date-localized-plugin = ">=1.2.9,<2"
+
+[tool.pixi.feature.docs.pypi-dependencies]
+material-plausible-plugin = ">=0.2.0,<0.3"
+mkdocs-awesome-pages-plugin = ">=2.9.3,<3"
+
+[tool.pixi.feature.docs.tasks]
+docs = { cmd = ["rm", "-rf", "./public/", "&&", "mkdocs", "build", "-d", "public/"] }
+serve = { cmd = ["mkdocs", "serve"] }
 
 [tool.poetry.scripts]
 vaxstats = "vaxstats.cli:main"
-
-[tool.poetry.group.dev.dependencies]
-black = "^23.9.0"
-isort = "^5.12.0"
-pre-commit = "^3.4.0"
-pylint = "^2.17.5"
-mypy = "^1.5.1"
-mypy-extensions = "^1.0.0"
-bump-my-version = "^0.11.0"
-poetry-dynamic-versioning = "^1.1.0"
-ruff = "^0.4.5"
-twine = "^5.0.0"
-
-[tool.poetry.group.test.dependencies]
-pytest = "^7.4.2"
-pytest-cov = "^4.1.0"
-pytest-html = "^4.0.1"
-coverage = "^7.3.1"
-colorama = "^0.4.6"
-
-[tool.poetry.group.docs.dependencies]
-mkdocs = "^1.5.3"
-mkdocs-material = "^9.4.7"
-material-plausible-plugin = "^0.2.0"
-pymdown-extensions = "^10.3.1"
-mkdocs-table-reader-plugin = "^2.0.3"
-mkdocstrings = "^0.23.0"
-mkdocstrings-python = "^1.7.3"
-mkdocs-gen-files = "^0.5.0"
-mkdocs-awesome-pages-plugin = "^2.9.2"
-mkdocs-macros-plugin = "^1.0.5"
-mkdocs-jupyter = "^0.24.6"
-mkdocs-glightbox = "^0.3.5"
-mkdocs-git-revision-date-localized-plugin = "^1.2.6"
 
 [tool.bumpversion]
 current_version = "2024.8.1"
@@ -216,84 +263,3 @@ branch = true
 [coverage.report]
 fail_under = 50
 show_missing = true
-
-["tool.poetry.group.conda.dependencies"]
-appdirs = "^1.4.4"
-Brotli = "^1.0.9"
-build = "^1.2.1"
-CacheControl = "^0.14.0"
-cachy = "^0.3.0"
-certifi = "^2024.7.4"
-cffi = "^1.16.0"
-cfgv = "^3.4.0"
-charset-normalizer = "^3.3.2"
-cleo = "^2.1.0"
-click = "^8.1.7"
-click-default-group = "^1.2.2"
-clikit = "^0.6.2"
-colorama = "^0.4.6"
-conda_lock = "^2.5.6"
-conda_poetry_liaison = "^0.1.2"
-crashtest = "^0.4.1"
-cryptography = "^42.0.5"
-distlib = "^0.3.8"
-dulwich = "^0.21.3"
-ensureconda = "^1.4.4"
-fastjsonschema = "^2.20.0"
-filelock = "^3.13.1"
-gitdb = "^4.0.7"
-GitPython = "^3.1.43"
-html5lib = "^1.1"
-identify = "^2.5.5"
-idna = "^3.7"
-importlib-metadata = "^7.0.1"
-installer = "^0.7.0"
-"jaraco.classes" = "^3.2.1"
-jeepney = "^0.7.1"
-Jinja2 = "^3.1.4"
-keyring = "^24.3.1"
-MarkupSafe = "^2.1.3"
-more-itertools = "^10.1.0"
-msgpack = "^1.0.3"
-nodeenv = "^1.7.0"
-numpy = "^1.26.4"
-packaging = "^24.1"
-pastel = "^0.2.1"
-pexpect = "^4.8.0"
-pip = "^24.2"
-pkginfo = "^1.10.0"
-platformdirs = "^3.10.0"
-poetry = "^1.8.3"
-poetry-core = "^1.9.0"
-poetry-plugin-export = "^1.8.0"
-pre_commit = "^3.8.0"
-ptyprocess = "^0.7.0"
-pycparser = "^2.21"
-pydantic = "^2.5.3"
-pydantic_core = "^2.14.6"
-pylev = "^1.3.0"
-pyOpenSSL = "^24.0.0"
-pyproject_hooks = "^1.0.0"
-PySocks = "^1.7.1"
-PyYAML = "^6.0.1"
-rapidfuzz = "^3.5.2"
-requests = "^2.32.3"
-requests-toolbelt = "^1.0.0"
-"ruamel.yaml" = "^0.17.21"
-SecretStorage = "^3.3.1"
-setuptools = "^72.1.0"
-shellingham = "^1.5.0"
-six = "^1.16.0"
-smmap = "^4.0.0"
-tomli = "^2.0.1"
-tomli_w = "^1.0.0"
-tomlkit = "^0.13.0"
-toolz = "^0.12.0"
-trove-classifiers = "^2023.10.18"
-typing_extensions = "^4.11.0"
-ukkonen = "^1.0.1"
-urllib3 = "^1.26.19"
-virtualenv = "^20.26.1"
-webencodings = "^0.5.1"
-wheel = "^0.43.0"
-zipp = "^3.17.0"

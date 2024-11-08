@@ -629,3 +629,7 @@ psi.*.clean
 
 tests/tmp/*
 !tests/tmp/.gitkeep
+
+# pixi environments
+.pixi
+*.egg-info
