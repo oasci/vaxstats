@@ -110,12 +110,16 @@ def prep_forecast_df(
             [pl.concat_str([df.columns[0], df.columns[1]], separator=" ").alias("ds")]
         )
         logger.debug(
-        f"Parsing datetimes with date format '{input_date_fmt}' and time format '{input_time_fmt}'"
+            f"Parsing datetimes with date format '{input_date_fmt}' and time format '{input_time_fmt}'"
         )
         df = df.with_columns(
             [
                 pl.col("ds")
-                .str.strptime(pl.Datetime, format=f"{input_date_fmt} {input_time_fmt}", strict=False)
+                .str.strptime(
+                    pl.Datetime,
+                    format=f"{input_date_fmt} {input_time_fmt}",
+                    strict=False,
+                )
                 .alias("parsed_datetime")
             ]
         )
