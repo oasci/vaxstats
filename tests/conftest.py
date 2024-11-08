@@ -20,6 +20,11 @@ def path_example_excel():
 
 
 @pytest.fixture
+def path_m3924_excel():
+    return os.path.join(TEST_DIR, "files/test-m3924.xlsx")
+
+
+@pytest.fixture
 def path_example_prepped_csv():
     return os.path.join(TEST_DIR, "files/example_prepped.csv")
 

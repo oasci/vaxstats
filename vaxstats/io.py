@@ -152,8 +152,8 @@ def load_file(
 
     Args:
         file_path (str): The path to the file.
-        file_type (str, optional): The type of file to load. Supported types are 'excel' and 'csv'.
-            Defaults to 'excel'.
+        file_type (str, optional): The type of file to load. Supported types are
+            Excel and csv.
         *args (Any): Additional positional arguments to pass to the Polars file reading function.
         **kwargs (Any): Additional keyword arguments to pass to the Polars file reading function.
 
@@ -167,6 +167,14 @@ def load_file(
         >>> import polars as pl
         >>> df = load_file("data.xlsx")
         >>> df = load_file("data.csv", file_type="csv")
+
+    Notes:
+        We use either
+        [`read_excel`](https://docs.pola.rs/api/python/stable/reference/api/polars.read_excel.html)
+        or
+        [`read_csv`](https://docs.pola.rs/api/python/stable/reference/api/polars.read_csv.html)
+        from [polars](https://pola.rs/) to read files.
+        Please refer to their respective documentation for `args` or `kwargs` that are available.
 
     """
     logger.info(f"Loading file from: `{file_path}`")
@@ -227,6 +235,7 @@ def cli_prep(args):
     Args:
         args (argparse.Namespace): Command-line arguments parsed by argparse.
             Expected attributes:
+
             - file_path (str): Path to the input file.
             - date_idx (int): Index of the date column.
             - time_idx (int): Index of the time column.
