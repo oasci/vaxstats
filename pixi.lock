@@ -7325,9 +7325,9 @@ packages:
   timestamp: 1730863295695
 - kind: pypi
   name: vaxstats
-  version: 0.0.0.post53
+  version: 0.0.0.post54
   path: .
-  sha256: 85ec1ad023232068c35de728ab4e416cbb26e9a1d8721e0251472f395a7ea4e4
+  sha256: f8f2893ef13a71c91f717c4c199ba074ddea954740b42b8d5a66f01b8a378f81
   editable: true
 - kind: conda
   name: watchdog

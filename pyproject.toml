@@ -46,8 +46,8 @@ pip = ">=24.3.1,<25"
 
 [tool.pixi.feature.dev.tasks]
 mdlint = { cmd = ["markdownlint-cli2", '"**/*.{md,markdown}"', "--fix", "--config", ".markdownlint.yaml", "||", "true"] }
-isort = { cmd = ["isort", "--settings-path", "pyproject.toml", "./vaxstats", "||", "true"] }
-black = { cmd = ["black", "--config", "pyproject.toml", "./vaxstats"] }
+isort = { cmd = ["isort", "--settings-path", "pyproject.toml", "./vaxstats", "./tests", "||", "true"] }
+black = { cmd = ["black", "--config", "pyproject.toml", "./vaxstats", "./tests", "||", "true"] }
 format = { depends-on = ["mdlint", "isort", "black"] }
 tests = { cmd = [
     "pytest",
