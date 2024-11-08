@@ -51,23 +51,7 @@ Clone the [repository](https://github.com/oasci/vaxstats):
 git clone https://github.com/oasci/vaxstats.git
 ```
 
-### Conda environment
-
-Move into `vaxstats` directory (`cd vaxstats`) and install the development conda environment using [GNU Make](https://www.gnu.org/software/make/) (which could be installed by default on your system).
-
-```bash
-make environment
-```
-
-Now you can activate the new conda environment `vaxstats-dev` and use `vaxstats` commands.
-
-```sh
-conda activate vaxstats-dev
-```
-
-### Manual install
-
-Alternatively, you can manually install `vaxstats` using `pip` after moving into the directory.
+Install `vaxstats` using `pip` after moving into the directory.
 
 ```sh
 pip install .
@@ -75,21 +59,19 @@ pip install .
 
 This will install all dependencies and `vaxstats` into your current Python environment.
 
-## Deploying
+## Development
 
-We use [bump-my-version](https://github.com/callowayproject/bump-my-version) to release a new version.
-This will create a git tag used by [poetry-dynamic-version](https://github.com/mtkennerly/poetry-dynamic-versioning) to generate version strings and update `CHANGELOG.md`.
-
-For example, you would run the following command to bump the `minor` version.
+We use [pixi](https://pixi.sh/latest/) to manage Python environments and simplify the developer workflow.
+Once you have [pixi](https://pixi.sh/latest/) installed, move into `vaxstats` directory (e.g., `cd vaxstats`) and install the  environment using the command
 
 ```bash
-poetry run bump-my-version bump minor
+pixi install
 ```
 
-After releasing a new version, you must push and include all tags.
+Now you can activate the new virtual environment using
 
-```bash
-git push --follow-tags
+```sh
+pixi shell
 ```
 
 ## License

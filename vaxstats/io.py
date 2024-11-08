@@ -74,6 +74,10 @@ def prep_forecast_df(
         DataFrame's columns.
     ValueError: If the date and time strings do not match the specified formats.
 
+    Notes:
+        If `date_idx` and `time_idx` are the same, we combine `input_date_fmt` and
+        `input_time_fmt` and load from the specified column.
+
     Examples:
     >>> import polars as pl
     >>> data = {'date': ["01-01-23", "01-02-23"], 'time': ["01:00:00 PM", "02:00:00 PM"], 'y': [10, 20]}
@@ -96,35 +100,30 @@ def prep_forecast_df(
         raise IndexError("One or more column indices are out of range")
 
     # Select only the required columns using indices
-    df = df.select(df.columns[date_idx], df.columns[time_idx], df.columns[y_idx])
-
-    logger.debug("Combining date and time columns")
-    df = df.with_columns(
-        [pl.concat_str([df.columns[0], df.columns[1]], separator=" ").alias("ds")]
-    )
-    logger.debug(f"Example row: {df[0]}")
-
-    logger.debug(
+    if date_idx == time_idx:
+        df = df.select(df.columns[date_idx], df.columns[y_idx])
+        df = df.rename({df.columns[0]: "ds"})
+    else:
+        df = df.select(df.columns[date_idx], df.columns[time_idx], df.columns[y_idx])
+        logger.debug("Combining date and time columns")
+        df = df.with_columns(
+            [pl.concat_str([df.columns[0], df.columns[1]], separator=" ").alias("ds")]
+        )
+        logger.debug(
         f"Parsing datetimes with date format '{input_date_fmt}' and time format '{input_time_fmt}'"
-    )
-    df = df.with_columns(
-        [
-            pl.col("ds")
-            .str.strptime(pl.Datetime, format=f"{input_date_fmt} {input_time_fmt}")
-            .alias("parsed_datetime")
-        ]
-    )
+        )
+        df = df.with_columns(
+            [
+                pl.col("ds")
+                .str.strptime(pl.Datetime, format=f"{input_date_fmt} {input_time_fmt}", strict=False)
+                .alias("parsed_datetime")
+            ]
+        )
+
     logger.debug(f"Example row: {df[0]}")
-
-    logger.debug(f"Writing datetimes in '{output_fmt}'")
-    df = df.with_columns(
-        [pl.col("parsed_datetime").dt.strftime(output_fmt).alias("ds")]
-    )
-
-    df = df.drop("parsed_datetime")
 
     # Rename the y column
-    df = df.rename({df.columns[2]: "y"})
+    df = df.rename({df.columns[1]: "y"})
 
     logger.debug("Adding unique_id column")
     df = df.with_columns(pl.lit(0).alias("unique_id"))

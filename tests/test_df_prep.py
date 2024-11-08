@@ -18,7 +18,7 @@ def test_clean_df(path_example_excel):
 def test_prep_df(path_example_excel):
     df = load_file(path_example_excel)
     df = clean_df(df)
-    df = prep_forecast_df(df, 0, 1, 6)
+    df = prep_forecast_df(df, 0, 0, 6)
     assert df.columns == ["unique_id", "ds", "y"]
     assert df.shape == (2_721, 3)
 
