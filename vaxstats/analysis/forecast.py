@@ -7,9 +7,9 @@ from loguru import logger
 
 from ..io import load_file
 from ..utils import get_baseline_df, str_to_datetime
-from .hourly import add_hourly_thresholds, calculate_hourly_stats
 from .residual import add_residuals_col, get_residual_bounds, get_residual_sum_square
 from .stats import get_column_max, get_column_mean, get_column_min, get_column_std
+from .timeframe import add_hourly_thresholds, calculate_stats_by_timeframe
 
 
 def detect_fever_hypothermia(
@@ -43,7 +43,9 @@ def detect_fever_hypothermia(
     logger.info("Detecting fever and hypothermia thresholds")
     df_baseline = get_baseline_df(df, date_column, date_fmt, baseline)
     residual_bounds = get_residual_bounds(df_baseline, residual_column)
-    hourly_stats = calculate_hourly_stats(df, data_column, pred_column, date_column)
+    hourly_stats = calculate_stats_by_timeframe(
+        df, "hour", data_column, pred_column, date_column
+    )
     hourly_stats = add_hourly_thresholds(hourly_stats, *residual_bounds)
     return hourly_stats, residual_bounds
 
@@ -91,7 +93,9 @@ def run_analysis(
         "std_dev_temp": float(get_column_std(df_baseline, data_column)),
         "max_temp": float(get_column_max(df_baseline, data_column)),
         "min_temp": float(get_column_min(df_baseline, data_column)),
-        "residual_sum_squares": float(get_residual_sum_square(df_baseline, residual_column)),
+        "residual_sum_squares": float(
+            get_residual_sum_square(df_baseline, residual_column)
+        ),
     }
 
     # Compute residual statistics

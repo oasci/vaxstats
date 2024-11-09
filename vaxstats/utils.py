@@ -116,7 +116,9 @@ def str_to_datetime(
     """
     Converts DataFrame datetime column strings to datetimes.
     """
-    df = df.with_columns(pl.col(date_column).str.strptime(pl.Datetime, date_fmt, strict=False))
+    df = df.with_columns(
+        pl.col(date_column).str.strptime(pl.Datetime, date_fmt, strict=False)
+    )
     if df[date_column][0] is None:
         logger.error(f"Date is Null, please check your `date_fmt` of {date_fmt}")
         raise RuntimeError

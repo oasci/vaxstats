@@ -52,6 +52,7 @@ def test_arima_cli(capsys, monkeypatch):
     print(captured)
     assert os.path.exists(output_path), "Output file was not created"
 
+
 def test_arima_m3924(path_m3924_prepped_csv):
     model_kwargs = {
         "order": (0, 0, 10),
