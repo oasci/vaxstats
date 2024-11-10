@@ -20,8 +20,8 @@ def path_example_excel():
 
 
 @pytest.fixture
-def path_m3924_excel():
-    return os.path.join(TEST_DIR, "files/test-m3924.xlsx")
+def path_m9324_excel():
+    return os.path.join(TEST_DIR, "files/test-m9324.xlsx")
 
 
 @pytest.fixture
@@ -30,8 +30,8 @@ def path_example_prepped_csv():
 
 
 @pytest.fixture
-def path_m3924_prepped_csv():
-    return os.path.join(TEST_DIR, "files/test-m3924.csv")
+def path_m9324_prepped_csv():
+    return os.path.join(TEST_DIR, "files/test-m9324.csv")
 
 
 @pytest.fixture
@@ -40,13 +40,18 @@ def path_example_forecast_csv():
 
 
 @pytest.fixture
-def path_forecast_csv_m3924():
-    return os.path.join(TEST_DIR, "files/test-m3924-forecast.csv")
+def path_forecast_csv_m9324():
+    return os.path.join(TEST_DIR, "files/test-m9324-forecast.csv")
 
 
 @pytest.fixture
 def path_example_img():
     return os.path.join(TEST_DIR, "tmp/path_example_img.png")
+
+
+@pytest.fixture
+def path_tmp():
+    return os.path.join(TEST_DIR, "tmp")
 
 
 @pytest.fixture
@@ -56,8 +61,8 @@ def example_forecast_df(path_example_forecast_csv):
 
 
 @pytest.fixture
-def m3924_forecast_df(path_forecast_csv_m3924):
-    df = load_file(path_forecast_csv_m3924, file_type="csv")
+def m9324_forecast_df(path_forecast_csv_m9324):
+    df = load_file(path_forecast_csv_m9324, file_type="csv")
     return df
 
 

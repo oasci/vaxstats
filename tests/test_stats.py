@@ -1,3 +1,6 @@
+import json
+import os
+
 import numpy as np
 import polars as pl
 
@@ -185,19 +188,19 @@ def test_get_all_stats(example_forecast_df):
         pred_column="y_hat",
         residual_column="residual",
     )
+    assert np.allclose(results["duration"]["total_hours"], 693.210555)
     assert results["baseline"]["degrees_of_freedom"] == 663
     assert np.allclose(results["baseline"]["average_temp"], 37.6765)
     assert np.allclose(results["baseline"]["std_dev_temp"], 0.72782)
     assert np.allclose(results["baseline"]["residual_sum_squares"], 5.1582)
     assert np.allclose(results["residual"]["max_residual"], 2.70556)
     assert np.allclose(results["residual"]["residual_upper_bound"], 0.264615542)
-    assert np.allclose(results["duration"]["total_duration_hours"], 693.210555)
-    assert results["duration"]["fever_hours"] == 266
-    assert results["duration"]["hypothermia_hours"] == 156
+    assert results["fever"]["duration"] == 266
+    assert results["hypothermia"]["duration"] == 156
 
 
-def test_get_all_stats_m3924(m3924_forecast_df):
-    df = m3924_forecast_df
+def test_get_all_stats_m9324(m9324_forecast_df, path_tmp):
+    df = m9324_forecast_df
     df = str_to_datetime(df, date_column="ds", date_fmt="%Y-%m-%dT%H:%M:%S%.f")
     df = add_residuals_col(df)
 
@@ -211,12 +214,17 @@ def test_get_all_stats_m3924(m3924_forecast_df):
         pred_column="y_hat",
         residual_column="residual",
     )
+
+    json_path = os.path.join(path_tmp, "m9324.json")
+    with open(json_path, "w+", encoding="utf-8") as f:
+        json.dump(results, f, indent=2)
+
+    assert np.allclose(results["duration"]["total_hours"], 248.75)
     assert results["baseline"]["degrees_of_freedom"] == 288
     assert np.allclose(results["baseline"]["average_temp"], 37.75336)
     assert np.allclose(results["baseline"]["std_dev_temp"], 0.56774)
     assert np.allclose(results["baseline"]["residual_sum_squares"], 2.74906)
     assert np.allclose(results["residual"]["max_residual"], 3.21165)
     assert np.allclose(results["residual"]["residual_upper_bound"], 0.2931)
-    assert np.allclose(results["duration"]["total_duration_hours"], 248.75)
-    assert results["duration"]["fever_hours"] == 153
-    assert results["duration"]["hypothermia_hours"] == 8
+    assert results["fever"]["duration"] == 153
+    assert results["hypothermia"]["duration"] == 8

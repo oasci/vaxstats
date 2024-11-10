@@ -74,6 +74,50 @@ def run_analysis(
 
     Returns:
         A dictionary containing the computed statistics.
+
+    The returned dictionary is an analysis from several key areas.
+
+    ### Explanation of outputs
+
+    `duration`
+
+    > Provides statistics for the entire duration of the dataset.
+    >
+    > `total_hours`: Time between the earliest and latest data point.
+    >
+    > `max_temp`: Maximum observed temperature in dataset.
+    >
+    > `min_temp`: Minimum observed temperature in dataset.
+
+    `baseline`
+
+    > Provides statistics of the period of time before a vaccine challenge.
+    > This establishes data that is used to fit the forecasting model with.
+    >
+    > `degrees_of_freedom`: Number of data points considered to be in the baseline.
+    >
+    > `average_temp`: Mean temperature during the baseline.
+    >
+    > `std_dev_temp`: Standard deviation during the baseline.
+    >
+    > `max_temp`: Maximum temperature observed during the baseline.
+    >
+    > `min_temp`: Minimum temperature observed during the baseline.
+    >
+    > `residual_sum_squares`: Computes the sum of squares of the specified residual
+    > column.
+
+    `residual`
+
+    > TODO:
+
+    `fever`
+
+    > Provides statistics related to elevated temperatures.
+    >
+    > `duration`: Maximum observed temperature in dataset.
+
+
     """
     hourly_stats, residual_bounds = detect_fever_hypothermia(
         df,
@@ -85,6 +129,16 @@ def run_analysis(
     )
 
     df_baseline = get_baseline_df(df, date_column, date_fmt, baseline)
+
+    # Compute duration statistics
+    duration_stats = {
+        "total_hours": (
+            df[date_column].max() - df[date_column].min()  # type: ignore
+        ).total_seconds()
+        / 3600,
+        "min_temp": float(get_column_min(df, data_column)),
+        "max_temp": float(get_column_max(df, data_column)),
+    }
 
     # Compute baseline statistics
     baseline_stats = {
@@ -105,25 +159,26 @@ def run_analysis(
         "residual_upper_bound": residual_bounds[1],
     }
 
-    # Compute duration statistics
-    duration_stats = {
-        "total_duration_hours": (
-            df[date_column].max() - df[date_column].min()  # type: ignore
-        ).total_seconds()
-        / 3600,
-        "fever_hours": hourly_stats.filter(
+    # Compute fever statistics
+    fever_stats = {
+        "duration": hourly_stats.filter(
             pl.col("y_median") > pl.col("fever_threshold")
         ).shape[0],
-        "hypothermia_hours": hourly_stats.filter(
+    }
+
+    hypothermia_stats = {
+        "duration": hourly_stats.filter(
             pl.col("y_median") < pl.col("hypo_threshold")
         ).shape[0],
     }
 
     # Combine all statistics into a single dictionary
     stats_dict = {
+        "duration": duration_stats,
         "baseline": baseline_stats,
         "residual": residual_stats,
-        "duration": duration_stats,
+        "fever": fever_stats,
+        "hypothermia": hypothermia_stats,
     }
 
     return stats_dict
