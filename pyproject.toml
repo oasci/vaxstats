@@ -1,255 +1,32 @@
 [project]
+authors = [
+    {name = "OASCI", email = "us@oasci.org"}
+]
+maintainers = [
+    {name = "Alex Maldonado", email = "alex@oasci.org"}
+]
+description = "Help with statistical forecasting models for vaccine studies."
 name = "vaxstats"
 version = "0.0.0"
-description = "Help with statistical forecasting models for vaccine studies."
-authors = [
-    "oasci <us@oasci.org>",
-]
-license = "Apache-2.0"
 readme = "README.md"
+requires-python = ">=3.12"
+# TODO: Keep this here until pixi releases building capabilities
+dependencies = [
+    "polars>=1.12.0,<2",
+    "loguru>=0.7.2,<0.8",
+    "statsforecast>=1.7.8,<2",
+    "xlsx2csv>=0.8.3,<0.9",
+    "pandas>=2.2.3,<3",
+    "matplotlib>=3.9.2,<4",
+    "pyyaml>=6.0.2,<7",
+    "fastexcel>=0.12.0,<0.13",
+]
 
-[tool.pixi.project]
-channels = ["conda-forge"]
-platforms = ["linux-64"]
-
-[tool.pixi.environments]
-dev = ["dev"]
-docs = ["docs"]
-
-[tool.pixi.pypi-dependencies]
-vaxstats = { path = ".", editable = true }
-
-[tool.pixi.tasks]
-
-[tool.pixi.dependencies]
-python = ">=3.12.0,<3.13"
-polars = ">=1.12.0,<2"
-loguru = ">=0.7.2,<0.8"
-statsforecast = ">=1.7.8,<2"
-xlsx2csv = ">=0.8.3,<0.9"
-pandas = ">=2.2.3,<3"
-matplotlib = ">=3.9.2,<4"
-pyyaml = ">=6.0.2,<7"
-fastexcel = ">=0.12.0,<0.13"
-
-[tool.pixi.feature.dev.dependencies]
-ruff = ">=0.7.2,<0.8"
-black = ">=24.10.0,<25"
-isort = ">=5.13.2,<6"
-mypy = ">=1.13.0,<2"
-twine = ">=5.1.1,<6"
-bump-my-version = ">=0.28.1,<0.29"
-pytest = ">=8.3.3,<9"
-pytest-cov = ">=6.0.0,<7"
-coverage = ">=7.6.4,<8"
-pip = ">=24.3.1,<25"
-
-[tool.pixi.feature.dev.tasks]
-mdlint = { cmd = ["markdownlint-cli2", '"**/*.{md,markdown}"', "--fix", "--config", ".markdownlint.yaml", "||", "true"] }
-isort = { cmd = ["isort", "--settings-path", "pyproject.toml", "./vaxstats", "./tests", "||", "true"] }
-black = { cmd = ["black", "--config", "pyproject.toml", "./vaxstats", "./tests", "||", "true"] }
-format = { depends-on = ["mdlint", "isort", "black"] }
-tests = { cmd = [
-    "pytest",
-    "-c",
-    "pyproject.toml",
-    "--cov='vaxstats'",
-    "--cov-report=xml",
-    "--junit-xml=report.xml",
-    "tests"
-]}
-coverage = { cmd = ["coverage", "report"] }
-cleanup-build = { cmd = ["rm", "-rf", "./build"] }
-build = { cmd = ["python3", "-m", "build"], depends-on = ["cleanup-build"]}
-publish-test = { cmd = ["twine", "upload", "--repository", "testpypi", "dist/*"] }
-publish = { cmd = ["twine", "upload", "dist/*"] }
-
-[tool.pixi.feature.dev.pypi-dependencies]
-build = ">=1.2.2.post1,<2"
-
-[tool.pixi.feature.docs.dependencies]
-mkdocs = ">=1.6.1,<2"
-mkdocs-material = ">=9.5.44,<10"
-pymdown-extensions = ">=10.12,<11"
-mkdocs-table-reader-plugin = ">=3.1.0,<4"
-mkdocstrings = ">=0.26.2,<0.27"
-mkdocstrings-python = ">=1.12.2,<2"
-mkdocs-gen-files = ">=0.4.0,<0.5"
-mkdocs-macros-plugin = ">=1.3.7,<2"
-mkdocs-jupyter = ">=0.25.0,<0.26"
-mkdocs-glightbox = ">=0.4.0,<0.5"
-mkdocs-git-revision-date-localized-plugin = ">=1.2.9,<2"
-
-[tool.pixi.feature.docs.pypi-dependencies]
-material-plausible-plugin = ">=0.2.0,<0.3"
-mkdocs-awesome-pages-plugin = ">=2.9.3,<3"
-
-[tool.pixi.feature.docs.tasks]
-docs = { cmd = ["rm", "-rf", "./public/", "&&", "mkdocs", "build", "-d", "public/"] }
-serve = { cmd = ["mkdocs", "serve"] }
-
-[tool.poetry.scripts]
+[project.scripts]
 vaxstats = "vaxstats.cli:main"
 
-[tool.bumpversion]
-current_version = "2024.8.1"
-tag = true
-commit = true
-
-[[tool.bumpversion.files]]
-filename = "CHANGELOG.md"
-no_regex = false
-search = "\\[Unreleased\\]"
-replace = "[Unreleased]\n\n## [{new_version}] - {now:%Y-%m-%d}"
-
-[tool.poetry-dynamic-versioning]
-enable = true
-vcs = "git"
-format-jinja = "{%- if distance == 0 -%}{{ serialize_pep440(base) }}{%- else -%}{{ serialize_pep440(base, post=distance) }}{%- endif -%}"
-
-[tool.poetry-dynamic-versioning.substitution]
-files = [
-    "vaxstats/__init__.py",
-]
-patterns = [
-    "(^__version__\\s*(?::.*?)?=\\s*['\"])[^'\"]*(['\"])",
-]
-
-[tool.pylint.messages_control]
-good-names = [
-    "i",
-    "j",
-    "e",
-    "ex",
-]
-ignore = [
-    "CVS",
-    "conf.py",
-]
-
-[tool.ruff]
-target-version = "py312"
-line-length = 88
-indent-width = 4
-exclude = [
-    ".git",
-    ".hg",
-    ".mypy_cache",
-    ".tox",
-    ".venv",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "env",
-    "venv",
-]
-
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-skip-magic-trailing-comma = false
-docstring-code-format = true
-docstring-code-line-length = "dynamic"
-
-[tool.black]
-target-version = [
-    "py312",
-]
-line-length = 88
-color = true
-exclude = "/(\n    \\.git\n    | \\.hg\n    | \\.mypy_cache\n    | \\.tox\n    | \\.venv\n    | _build\n    | buck-out\n    | build\n    | dist\n    | env\n    | venv\n)/\n"
-
-[tool.isort]
-py_version = 312
-line_length = 88
-known_typing = [
-    "typing",
-    "types",
-    "typing_extensions",
-    "mypy",
-    "mypy_extensions",
-]
-sections = [
-    "FUTURE",
-    "TYPING",
-    "STDLIB",
-    "THIRDPARTY",
-    "FIRSTPARTY",
-    "LOCALFOLDER",
-]
-profile = "black"
-include_trailing_comma = true
-multi_line_output = 3
-indent = 4
-color_output = true
-
-[tool.mypy]
-python_version = "3.12"
-pretty = true
-show_traceback = true
-color_output = true
-allow_redefinition = false
-check_untyped_defs = true
-disallow_any_generics = true
-disallow_incomplete_defs = true
-ignore_missing_imports = true
-implicit_reexport = false
-no_implicit_optional = true
-show_column_numbers = true
-show_error_codes = true
-show_error_context = true
-strict_equality = true
-strict_optional = true
-warn_no_return = true
-warn_redundant_casts = true
-warn_return_any = true
-warn_unreachable = true
-warn_unused_configs = true
-warn_unused_ignores = true
-
-[tool.pytest.ini_options]
-norecursedirs = [
-    "vaxstats",
-    "*.egg",
-    ".eggs",
-    "dist",
-    "build",
-    "docs",
-    ".tox",
-    ".git",
-    "__pycache__",
-]
-doctest_optionflags = [
-    "NUMBER",
-    "NORMALIZE_WHITESPACE",
-    "IGNORE_EXCEPTION_DETAIL",
-]
-addopts = [
-    "--strict-markers",
-    "--tb=short",
-    "--doctest-modules",
-    "--doctest-continue-on-failure",
-]
-
-[tool.coverage.run]
-source = [
-    "tests",
-]
-
 [build-system]
-requires = [
-    "poetry-core>=1.0.0",
-    "poetry-dynamic-versioning>=1.0.0,<2.0.0",
-]
-build-backend = "poetry_dynamic_versioning.backend"
+requires = ["setuptools"]
 
-[coverage.paths]
-source = "vaxstats"
-
-[coverage.run]
-branch = true
-
-[coverage.report]
-fail_under = 50
-show_missing = true
+[tool.setuptools.packages.find]
+where = ["vaxstats"]
