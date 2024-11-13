@@ -1,4 +1,4 @@
-[tool.pixi.project]
+[project]
 name = "vaxstats"
 version = "0.0.0"
 description = "Help with statistical forecasting models for vaccine studies."
@@ -7,6 +7,8 @@ authors = [
 ]
 license = "Apache-2.0"
 readme = "README.md"
+
+[tool.pixi.project]
 channels = ["conda-forge"]
 platforms = ["linux-64"]
 
