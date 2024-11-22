@@ -115,10 +115,11 @@ extra_css:
   - css/colors.css
   - css/mkdocstrings.css
   - css/launchy.css
+  - css/jupyter.css
 
 extra_javascript:
-  - js/mathjax-config.js
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+  - js/mathjax-config.js
 
 markdown_extensions:
   - abbr
