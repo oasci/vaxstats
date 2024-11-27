@@ -29,4 +29,5 @@ vaxstats = "vaxstats.cli:main"
 requires = ["setuptools"]
 
 [tool.setuptools.packages.find]
-where = ["vaxstats"]
+where = ["."]
+include = ["vaxstats*"]
