@@ -13979,7 +13979,7 @@ packages:
   name: vaxstats
   version: 0.0.0
   path: .
-  sha256: aac35488f2998b44634fcf825e548f68fa0a8c48467603d22ac6d4bd72939d31
+  sha256: 4c739ff486fc84c9727a22936ec3f5cb86b600cb548c879a5e49f75d40f6b6c4
   requires_dist:
   - polars>=1.12.0,<2
   - loguru>=0.7.2,<0.8
