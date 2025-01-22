@@ -27,39 +27,6 @@ def add_residuals_col(
     )
 
 
-def get_sum_sqr_success_diffs(df: pl.DataFrame, column_name: str) -> float:
-    """
-    Calculate the Sum of Squared Successive Differences (SSSD) based on
-    consecutive baseline temperature measurements.
-
-    Args:
-        df: The input DataFrame.
-        column_name: The name of the column to compute SSSD.
-
-    Returns:
-        The Sum of Squared Successive Differences (SSSD).
-    """
-    # Extract the baseline temperature data
-    baseline = df[column_name].to_numpy()
-
-    # Compute the differences between consecutive temperature measurements
-    diffs = np.diff(baseline)
-
-    # Identify valid differences where neither of the consecutive measurements is NaN
-    valid_mask = ~np.isnan(diffs) & ~np.isnan(baseline[:-1]) & ~np.isnan(baseline[1:])
-
-    # Calculate squared differences, setting invalid entries to zero
-    squared_diffs = np.where(valid_mask, diffs**2, 0)
-
-    # Sum the squared differences to obtain SSSD
-    sum_squared_successive_diffs = squared_diffs.sum()
-
-    logger.debug(
-        f"Sum of Squared Successive Differences (SSSD) calculated: {sum_squared_successive_diffs}"
-    )
-    return float(sum_squared_successive_diffs)
-
-
 def get_residual_sum_square(
     df: pl.DataFrame, residual_column: str = "residual"
 ) -> float:
@@ -75,39 +42,3 @@ def get_residual_sum_square(
     """
     residuals = df.get_column(residual_column).to_numpy()
     return float(np.sum(residuals**2))
-
-
-def calculate_residual_bounds(rss: float, n_rows: int) -> tuple[float, float]:
-    """
-    Calculate upper and lower residual bounds.
-
-    Args:
-        rss: The residual sum of squares.
-        n_rows: The number of rows in the DataFrame.
-
-    Returns:
-        A tuple containing the lower and upper residual bounds.
-    """
-    rss_normed = rss / n_rows
-    rss_upper = 3 * rss_normed ** (1 / 2)
-    rss_lower = -rss_upper
-    return rss_lower, rss_upper
-
-
-def get_residual_bounds(
-    df: pl.DataFrame,
-    residual_column: str = "residual",
-) -> tuple[float, float]:
-    """
-    Calculate residual bounds for the DataFrame.
-
-    Args:
-        df: The input DataFrame.
-        residual_column: The name of the residuals column.
-
-    Returns:
-        A tuple containing the lower and upper residual bounds.
-    """
-    n_rows = df.shape[0]
-    rss = get_residual_sum_square(df, residual_column=residual_column)
-    return calculate_residual_bounds(rss, n_rows)

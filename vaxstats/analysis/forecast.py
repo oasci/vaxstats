@@ -7,7 +7,8 @@ from loguru import logger
 
 from ..io import load_file
 from ..utils import get_baseline_df, str_to_datetime
-from .residual import add_residuals_col, get_residual_bounds, get_sum_sqr_success_diffs
+from .residual import add_residuals_col
+from .roc import get_roc_bounds, get_sum_sqr_success_diffs
 from .stats import get_column_max, get_column_mean, get_column_min, get_column_std
 from .timeframe import add_hourly_thresholds, calculate_stats_by_timeframe
 
@@ -42,12 +43,12 @@ def detect_fever_hypothermia(
     """
     logger.info("Detecting fever and hypothermia thresholds")
     df_baseline = get_baseline_df(df, date_column, date_fmt, baseline)
-    residual_bounds = get_residual_bounds(df_baseline, residual_column)
+    roc_bounds = get_roc_bounds(df_baseline, residual_column)
     hourly_stats = calculate_stats_by_timeframe(
         df, "hour", data_column, pred_column, date_column
     )
-    hourly_stats = add_hourly_thresholds(hourly_stats, *residual_bounds)
-    return hourly_stats, residual_bounds
+    hourly_stats = add_hourly_thresholds(hourly_stats, *roc_bounds)
+    return hourly_stats, roc_bounds
 
 
 def run_analysis(
@@ -119,7 +120,7 @@ def run_analysis(
 
 
     """
-    hourly_stats, residual_bounds = detect_fever_hypothermia(
+    hourly_stats, roc_bounds = detect_fever_hypothermia(
         df,
         pred_column=pred_column,
         residual_column=residual_column,
@@ -153,10 +154,11 @@ def run_analysis(
     }
 
     # Compute residual statistics
-    residual_stats = {
+    # TODO: fix
+    roc_stats = {
         "max_residual": float(get_column_max(df, residual_column)),
-        "residual_lower_bound": residual_bounds[0],
-        "residual_upper_bound": residual_bounds[1],
+        "residual_lower_bound": roc_bounds[0],
+        "residual_upper_bound": roc_bounds[1],
     }
 
     # Compute fever statistics
@@ -176,7 +178,7 @@ def run_analysis(
     stats_dict = {
         "duration": duration_stats,
         "baseline": baseline_stats,
-        "residual": residual_stats,
+        "rate_of_change": roc_stats,
         "fever": fever_stats,
         "hypothermia": hypothermia_stats,
     }
