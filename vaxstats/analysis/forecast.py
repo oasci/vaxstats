@@ -7,7 +7,7 @@ from loguru import logger
 
 from ..io import load_file
 from ..utils import get_baseline_df, str_to_datetime
-from .residual import add_residuals_col, get_residual_bounds, get_residual_sum_square
+from .residual import add_residuals_col, get_residual_bounds, get_sum_sqr_success_diffs
 from .stats import get_column_max, get_column_mean, get_column_min, get_column_std
 from .timeframe import add_hourly_thresholds, calculate_stats_by_timeframe
 
@@ -147,8 +147,8 @@ def run_analysis(
         "std_dev_temp": float(get_column_std(df_baseline, data_column)),
         "max_temp": float(get_column_max(df_baseline, data_column)),
         "min_temp": float(get_column_min(df_baseline, data_column)),
-        "residual_sum_squares": float(
-            get_residual_sum_square(df_baseline, residual_column)
+        "sum_sqr_success_diffs": float(
+            get_sum_sqr_success_diffs(df_baseline, data_column)
         ),
     }
 

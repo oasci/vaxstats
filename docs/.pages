@@ -2,4 +2,5 @@ nav:
     - Home: index.md
     - Commands: commands
     - Examples: examples
+    - Methodology: methods
     - API: api

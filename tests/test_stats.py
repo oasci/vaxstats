@@ -5,7 +5,11 @@ import numpy as np
 import polars as pl
 
 from vaxstats.analysis.forecast import detect_fever_hypothermia, run_analysis
-from vaxstats.analysis.residual import add_residuals_col, get_residual_bounds
+from vaxstats.analysis.residual import (
+    add_residuals_col,
+    get_residual_bounds,
+    get_sum_sqr_success_diffs,
+)
 from vaxstats.analysis.stats import get_column_stat, get_column_stats
 from vaxstats.analysis.timeframe import (
     add_hourly_thresholds,
@@ -38,6 +42,20 @@ def test_residual_stats(example_forecast_df_baseline):
     rss = np.sum(residuals**2)
 
     assert np.allclose(rss, 5.1582, atol=0.0001)
+
+
+def test_get_sum_sqr_success_diffs(m9324_forecast_df):
+    df = m9324_forecast_df
+    df = str_to_datetime(df, date_column="ds", date_fmt="%Y-%m-%dT%H:%M:%S.%f")
+
+    # Get baseline data
+    baseline_days = 3.0
+    baseline_hours = 24 * baseline_days
+    df = get_baseline_df(df, baseline=baseline_hours)
+
+    rss = get_sum_sqr_success_diffs(df, "y")
+
+    assert np.allclose(rss, 5.216896, atol=0.0001)
 
 
 def test_residual_bounds(example_forecast_df_baseline):
@@ -192,7 +210,7 @@ def test_get_all_stats(example_forecast_df):
     assert results["baseline"]["degrees_of_freedom"] == 663
     assert np.allclose(results["baseline"]["average_temp"], 37.6765)
     assert np.allclose(results["baseline"]["std_dev_temp"], 0.72782)
-    assert np.allclose(results["baseline"]["residual_sum_squares"], 5.1582)
+    assert np.allclose(results["baseline"]["sum_sqr_success_diffs"], 7.15674)
     assert np.allclose(results["residual"]["max_residual"], 2.70556)
     assert np.allclose(results["residual"]["residual_upper_bound"], 0.264615542)
     assert results["fever"]["duration"] == 266
@@ -223,7 +241,7 @@ def test_get_all_stats_m9324(m9324_forecast_df, path_tmp):
     assert results["baseline"]["degrees_of_freedom"] == 288
     assert np.allclose(results["baseline"]["average_temp"], 37.75336)
     assert np.allclose(results["baseline"]["std_dev_temp"], 0.56774)
-    assert np.allclose(results["baseline"]["residual_sum_squares"], 2.74906)
+    assert np.allclose(results["baseline"]["sum_sqr_success_diffs"], 5.216896)
     assert np.allclose(results["residual"]["max_residual"], 3.21165)
     assert np.allclose(results["residual"]["residual_upper_bound"], 0.2931)
     assert results["fever"]["duration"] == 153
