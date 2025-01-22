@@ -46,7 +46,9 @@ def get_roc_bounds(
         column_name: The name of the column.
 
     Returns:
-        A tuple containing the lower and upper ROC bounds.
+        Lower ROC bound for hypothermia detection.
+
+        Upper ROC bound for fever detection.
     """
     n_rows = df.shape[0]
     sssd = get_sum_sqr_success_diffs(df, column_name=column_name)
